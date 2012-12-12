@@ -1,23 +1,163 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
-    </head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link media="screen" rel="stylesheet" href="/css/bootstrap.min.css" />
+            <link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" />
+            <link rel="stylesheet" href="/css/docs.css" />
+            <script src="http://code.jquery.com/jquery-latest.js"></script>
+            <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+            </head>
     <body>
-        {% for greeting in greetings %}
-        {% if greeting.author %}
-        <b>{{ greeting.author }}</b> wrote:
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <a class="brand" href="#">Home</a>
+                <ul class="nav">
+                    <li class="active"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>{{ username }}</b><b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a tabindex="-1" href="/">View Category</a></li>
+                            <li class="divider"></li>
+                            <li><a tabindex="-1" href="#">Return Home</a></li>
+                        </ul>
+                    </li>
+                    {% if username %}
+                    <li><a href="#">Vote</a></li>
+                    <li><a href="#">Voting Stats</a></li>
+                    {% endif %}
+                    <li><a href="{{ url }}">{{ url_linktext }}</a></li>
+                </ul>
+            </div>
+        </div>
+        <header class="jumbotron subhead">
+            <div class="container">
+                <h2>Vote 4 Whatever <small>Vote without thinking.</small></h2>
+            </div>
+        </header>
+        <div class="container">
+            {% if vote %}
+             <div class="row">
+             <div class="span9">
+             <div class="row">
+             <div class="span1"></div>
+             <ul class="thumbnails">
+             <li class="span4" style="background-color:#f8f8f8;">
+             <div class="thumbnail">
+             <img src="/images/ny.jpg" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;">
+             <div class="caption">
+             <h3><center>Item1</center></h3>
+             <br/>
+             <center>
+             <a href="#" class="btn btn-primary">Vote</a>
+             <a href="#" class="btn">Skip</a>
+             </center>
+             </div>
+             </div>
+             </li>
+             <li class="span4" style="background-color:#f8f8f8;">
+             <div class="thumbnail">
+             <img src="/images/ny.jpg" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;">
+             <div class="caption">
+             <h3><center>Item2</center></h3>
+             <br/>
+             <center>
+             <a href="#" class="btn btn-primary">Vote</a>
+             <a href="#" class="btn">Skip</a>
+             </center>
+             </div>
+             </div>
+             </li>
+             
+             </ul>
+             
+             </div>
+             </div>
+             </div>
+            {% elif categories %}
+            <div class="row">
+                <div class="span4">
+                    <form action="/addCat" method="post">
+                        <legend>Category Name:<input type="text" name="cat_name"></legend>
+                        <legend>Expiration Time: <input type="text" name="expiration_time"></legend>
+                        <input class="btn btn-primary" type="submit" value="Add Category">
+                            <input class="btn" type="reset" value="Reset">
+                                
+                                </form>
+                </div>
+                <div class="span5">
+                    <table class="table table-hover" id="Items">
+                        <thead>
+                            <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                        </thead>
+                        {% for cat in categories %}
+                        {% if cat.name %}
+                        <tr><td><a href="#">Edit</a></td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% elif cat_name %}
+            <div class="row">
+                <div class="span4">
+                    <form action="/addItem" method="post">
+                        <legend>Item Name:<input type="text" name="item_name"></legend>
+                        <legend>Image: <input type="file" name="picture"></legend>
+                        <input class="btn btn-primary" type="submit" value="Add Item">
+                            <input class="btn" type="reset" value="Reset">
+                                
+                                </form>
+                </div>
+                <div class="span5">
+                    <table class="table table-hover" id="Items">
+                        <thead>
+                            <th></th><th>Image</th><th>Name</th><th>Create Time</th>
+                        </thead>
+                        {% for item in items %}
+                        {% if item.name %}
+                        <tr><td><a href="#">Edit</a></td><td>Image</td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% elif results %}
+             <div class="row">
+             <table class="table table-hover" id="Results">
+             <caption></caption>
+             <thead>
+             <tr><th>Name</th><th>Win</th><th>Lose</th><th>Percentage</th></tr>
+             </thead>
+             <tbody>
+             <tr>
+             <td></td><td></td><td></td><td></td>
+             </tr>
+             </tbody>
+             </table>
+             </div>
+             </div>
         {% else %}
-        An anonymous person wrote:
-        {% endif %}
-        <blockquote>{{ greeting.content|escape }}</blockquote>
-        {% endfor %}
+        <div class="row">
+            <div class="span6 offset3">
+            <div class="hero-unit">
+                <h1>Vote.Simple.</h1>
+                <p>Voting is more simple than you can imagine.</p>
+                <a class="btn btn-primary btn-large" href="{{ url }}">
+                    Login
+                </a>
+            </div>
+            </div>
+        </div>
+            {% endif %}
         
-        <form action="/sign" method="post">
-            <div><textarea name="content" rows="3" cols="60"></textarea></div>
-            <div><input type="submit" value="Sign Guestbook"></div>
-        </form>
-        
-        <a href="{{ url }}">{{ url_linktext }}</a>
-        
-    </body>
+            <footer class="footer">
+                <div class="container">
+                    <ul class="footer-links">
+                        <li><a href="http://1010ling.blogspot.com">Blog</a></li>
+                        <li class="muted">·</li>
+                        <li><a href="http://www.linkedin.com/profile/view?id=140036254">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </footer>
+            
+            </body>
 </html>

@@ -1,0 +1,156 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		AA16FF381677E155008F2A42 /* app.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = app.yaml; path = ../app.yaml; sourceTree = "<group>"; };
+		AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.css"; sourceTree = "<group>"; };
+		AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.min.css"; sourceTree = "<group>"; };
+		AA16FF3C1677E155008F2A42 /* bootstrap.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = bootstrap.css; sourceTree = "<group>"; };
+		AA16FF3D1677E155008F2A42 /* bootstrap.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = bootstrap.min.css; sourceTree = "<group>"; };
+		AA16FF3E1677E155008F2A42 /* docs.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = docs.css; sourceTree = "<group>"; };
+		AA16FF3F1677E155008F2A42 /* favicon.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; name = favicon.ico; path = ../favicon.ico; sourceTree = "<group>"; };
+		AA16FF411677E155008F2A42 /* bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bg.png; sourceTree = "<group>"; };
+		AA16FF421677E155008F2A42 /* glyphicons-halflings-white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings-white.png"; sourceTree = "<group>"; };
+		AA16FF431677E155008F2A42 /* glyphicons-halflings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings.png"; sourceTree = "<group>"; };
+		AA16FF441677E155008F2A42 /* ny.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ny.jpg; sourceTree = "<group>"; };
+		AA16FF451677E155008F2A42 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = index.html; path = ../index.html; sourceTree = "<group>"; };
+		AA16FF461677E155008F2A42 /* index.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = index.yaml; path = ../index.yaml; sourceTree = "<group>"; };
+		AA16FF481677E155008F2A42 /* bootstrap.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.js; sourceTree = "<group>"; };
+		AA16FF491677E155008F2A42 /* bootstrap.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.min.js; sourceTree = "<group>"; };
+		AA16FF4A1677E155008F2A42 /* prettify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prettify.js; sourceTree = "<group>"; };
+		AA16FF4C1677E155008F2A42 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
+		AA16FF4F1677E155008F2A42 /* voting_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting_demo.py; path = ../voting_demo.py; sourceTree = "<group>"; };
+		AA16FF501677E155008F2A42 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
+		AA16FF511677E155008F2A42 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		AA16FF2F1677E142008F2A42 = {
+			isa = PBXGroup;
+			children = (
+				AA16FF381677E155008F2A42 /* app.yaml */,
+				AA16FF391677E155008F2A42 /* css */,
+				AA16FF3F1677E155008F2A42 /* favicon.ico */,
+				AA16FF401677E155008F2A42 /* img */,
+				AA16FF451677E155008F2A42 /* index.html */,
+				AA16FF461677E155008F2A42 /* index.yaml */,
+				AA16FF471677E155008F2A42 /* js */,
+				AA16FF4B1677E155008F2A42 /* Voting */,
+				AA16FF4F1677E155008F2A42 /* voting_demo.py */,
+				AA16FF501677E155008F2A42 /* voting.py */,
+				AA16FF511677E155008F2A42 /* voting.pyc */,
+			);
+			sourceTree = "<group>";
+		};
+		AA16FF391677E155008F2A42 /* css */ = {
+			isa = PBXGroup;
+			children = (
+				AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */,
+				AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */,
+				AA16FF3C1677E155008F2A42 /* bootstrap.css */,
+				AA16FF3D1677E155008F2A42 /* bootstrap.min.css */,
+				AA16FF3E1677E155008F2A42 /* docs.css */,
+			);
+			name = css;
+			path = ../css;
+			sourceTree = "<group>";
+		};
+		AA16FF401677E155008F2A42 /* img */ = {
+			isa = PBXGroup;
+			children = (
+				AA16FF411677E155008F2A42 /* bg.png */,
+				AA16FF421677E155008F2A42 /* glyphicons-halflings-white.png */,
+				AA16FF431677E155008F2A42 /* glyphicons-halflings.png */,
+				AA16FF441677E155008F2A42 /* ny.jpg */,
+			);
+			name = img;
+			path = ../img;
+			sourceTree = "<group>";
+		};
+		AA16FF471677E155008F2A42 /* js */ = {
+			isa = PBXGroup;
+			children = (
+				AA16FF481677E155008F2A42 /* bootstrap.js */,
+				AA16FF491677E155008F2A42 /* bootstrap.min.js */,
+				AA16FF4A1677E155008F2A42 /* prettify.js */,
+			);
+			name = js;
+			path = ../js;
+			sourceTree = "<group>";
+		};
+		AA16FF4B1677E155008F2A42 /* Voting */ = {
+			isa = PBXGroup;
+			children = (
+				AA16FF4C1677E155008F2A42 /* Voting.xcodeproj */,
+			);
+			name = Voting;
+			sourceTree = "<group>";
+		};
+		AA16FF4D1677E155008F2A42 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		AA16FF311677E142008F2A42 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+			};
+			buildConfigurationList = AA16FF341677E142008F2A42 /* Build configuration list for PBXProject "Voting" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = AA16FF2F1677E142008F2A42;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = AA16FF4D1677E155008F2A42 /* Products */;
+					ProjectRef = AA16FF4C1677E155008F2A42 /* Voting.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		AA16FF361677E142008F2A42 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		AA16FF371677E142008F2A42 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA16FF341677E142008F2A42 /* Build configuration list for PBXProject "Voting" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA16FF361677E142008F2A42 /* Debug */,
+				AA16FF371677E142008F2A42 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA16FF311677E142008F2A42 /* Project object */;
+}
