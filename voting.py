@@ -14,21 +14,22 @@ jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.di
 
 #category has ancestor user
 class Category(db.Model):
+    #owner = db.StringProperty()
     name = db.CategoryProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
     expiration_time = db.DateTimeProperty()
 
 #item has ancestor category
 class Item(db.Model):
+    #category = db.Key()
     name = db.StringProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
     picture = db.BlobProperty(default='img/ny.jpg')
 
-#vote has ancestor category
 class Vote(db.Model):
     voter = db.Key()
-    voted_item = db.StringProperty()
-    unvoted_item = db.StringProperty()
+    voted_item = db.Key()
+    unvoted_item = db.Key()
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
 class Comment(db.Model):
@@ -37,29 +38,78 @@ class Comment(db.Model):
     create_time = db.DateTimeProperty()
     content = db.StringProperty()
 
+"""Used to retrieve the keys of the model given a user's information"""
+def user_key(user_id=None):
+    return db.Key.from_path('UserId', user_id or 'default_user')
+
+def user_key(cat_id=None):
+    return db.Key.from_path('CatId', cat_id)
+
+def user_key(item_id=None):
+    return db.Key.from_path('ItemId', item_id)
+
+"""These functions are the models' manipulations"""
+#insert a new category
+def insertCat(user_id, cat_name):
+    cat_expt = datetime.datetime(2013, 11, 1, 1)
+    cat = Category(parent=user_id, key_name=cat_name, name=cat_name, expiration_time=cat_expt)
+    cat.put()
+    return cat.key()
+
+#list all categories under the user
+def listCat(query):
+    q = Category.all()
+    for k in query:
+        if k=='ancestor':
+            q.ancestor(query[k])
+        else:
+            q.filter(k, query[k])
+    list = q.run()
+    return list
+
+#insert a new item, will check for the user is valid to add item in that category
+def insertItem(user_id, cat_id, item_name, pic_dir):
+    tmp_cat = Category.all().ancestor(user_id).filter('key', cat_id).run()
+    if tmp_cat:
+        item = Item(parent=cat_id, key_name=item_name, name=item_name)
+        if pic_dir:
+            item.picture = db.Blob(open(pic_dir, "rb").read())
+        item.put()
+        return item.key()
+
+#list all items under the category
+def listItem(query):
+    q = Item.all()
+    for k in query:
+        if k=='ancestor':
+            q.ancestor(query[k])
+        else:
+            q.filter(k, query[k])
+    list = q.run()
+    return list
+
 class AddCat(webapp2.RequestHandler):
     def post(self):
         cat_name = self.request.get('cat_name')
-        cat_expt = datetime.datetime(2013, 11, 1, 1)
         
-        user_id = user_key(users.get_current_user().user_id())
         if users.get_current_user():
-            cat = Category(parent=user_id, name=cat_name, expiration_time=cat_expt)
-            cat.put()
-#self.response.out.write(user_id)
-            self.redirect('/cat_name?' + urllib.quote(cat_name))
+            user_id = user_key(users.get_current_user().user_id())
+            cat_id = insertCat(user_id, cat_name)
+            #self.response.out.write(cat_id)
+            self.redirect('/?' + urllib.urlencode({'cat_id': cat_id}))
 
 class AddItem(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         user_id = user_key(users.get_current_user().user_id())
-        self.response.out.write(user_id)
-#self.redirect('/?' + urllib.urlencode({'cat_name': cat_name}))
+        #self.response.out.write(user_id)
+        cat_id = self.request.get('cat_id')
+        item_name = self.request.get('item_name')
+        pic_dir = self.request.get('picture')
+        item_id = insertItem(user_id, cat_id, item_name, pic_dir)
+        self.redirect('/?' + urllib.urlencode({'cat_id': cat_id}))
 
-def user_key(user_id=None):
-    """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
-    return db.Key.from_path('UserId', user_id or 'default_user')
 
-class MainPage(webapp2.RequestHandler):
+class Dispatcher(webapp2.RequestHandler):
     def get(self):
         
         template_values = {}
@@ -69,23 +119,35 @@ class MainPage(webapp2.RequestHandler):
             url_linktext = 'Logout'
             username = user.nickname()
             user_id = user.user_id()
-
-            category_query = Category.all()
-            category_query.ancestor(user_key(user_id))
-            cats = category_query.run()
-            template_values['categories'] = cats
             
+            if self.request.arguments():
+                if self.request.get('category'):
+                    query = { 'ancestor' :user_key(user_id) }
+                    list = listCat(query)
+                    template_values['categories'] = list
+            
+                elif self.request.get('cat_id'):
+                    query = {'ancestor' : user_key(self.request.get('cat_id'))}
+                    list = listItem(query)
+                    template_values['items'] = list
+        
+            else:
+                query = { 'ancestor' :user_key(user_id) }
+                cats = listCat(query)
+                template_values['categories'] = cats
+
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
-        
+
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
         template_values['username'] = username
-                
+
+
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', MainPage), ('/addCat', AddCat), ('/cat_name', AddItem)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem)], debug=True)

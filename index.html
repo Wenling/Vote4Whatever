@@ -88,6 +88,7 @@
                         <thead>
                             <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
                         </thead>
+                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                         {% for cat in categories %}
                         {% if cat.name %}
                         <tr><td><a href="#">Edit</a></td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
@@ -96,16 +97,17 @@
                     </table>
                 </div>
             </div>
-            {% elif cat_name %}
+            {% elif items %}
             <div class="row">
                 <div class="span4">
                     <form action="/addItem" method="post">
                         <legend>Item Name:<input type="text" name="item_name"></legend>
                         <legend>Image: <input type="file" name="picture"></legend>
+                        <input type="hidden" name = 'cat_id' value={{cat_id}}>
                         <input class="btn btn-primary" type="submit" value="Add Item">
                             <input class="btn" type="reset" value="Reset">
                                 
-                                </form>
+                    </form>
                 </div>
                 <div class="span5">
                     <table class="table table-hover" id="Items">
