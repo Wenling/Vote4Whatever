@@ -180,6 +180,9 @@ class Dispatcher(webapp2.RequestHandler):
             username = user.nickname()
             user_id = user.user_id()
             
+            template_values['username'] = username
+            template_values['user_id'] = user_id
+            
             if self.request.arguments():
                 if self.request.get('category'):
                     query = { 'ancestor' :user_key(user_id) }
@@ -253,9 +256,7 @@ class Dispatcher(webapp2.RequestHandler):
         
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
-        template_values['username'] = username
-        template_values['user_id'] = user_id
-        
+                
         
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
