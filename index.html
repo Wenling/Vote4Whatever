@@ -21,7 +21,7 @@
                         </ul>
                     </li>
                     {% if username %}
-                    <li><a href="#">Vote</a></li>
+                    <li><a href="/?vote_cat=all">Vote</a></li>
                     <li><a href="#">Voting Stats</a></li>
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
@@ -34,7 +34,23 @@
             </div>
         </header>
         <div class="container">
-            {% if vote %}
+            {% if vote_cat %}
+            <div class="row">
+                <div class="span9">
+                    <table class="table table-hover" id="Items">
+                        <thead>
+                            <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                        </thead>
+                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                        {% for cat in vote_cat %}
+                        {% if cat.name %}
+                        <tr><td><a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% elif vote %}
             <div class="row">
                 <div class="span9">
                     <div class="row">
@@ -104,6 +120,7 @@
                         <legend>Item Name:<input type="text" name="item_name"></legend>
                         <legend>Image: <input type="file" name="picture"></legend>
                         <input type="hidden" name = 'cat_name' value={{ cat_name }}>
+                        <input type="hidden" name = 'owner' value={{ owner }}>
                             <input class="btn btn-primary" type="submit" value="Add Item">
                                 <input class="btn" type="reset" value="Reset">
                                     
@@ -122,6 +139,33 @@
                         {% endfor %}
                     </table>
                 </div>
+            </div>
+            {% elif item %}
+            <div class="row">
+                <div class="span4">
+                    <form action="/addItem" method="post">
+                        <legend>Comment:<input type="textarea" name="content"></legend>
+                        <input type="hidden" name = 'cat_name' value={{ cat_name }}>
+                        <input type="hidden" name = 'item_name' value={{ item.name }}>
+                        <input class="btn btn-primary" type="submit" value="Add Item">
+                        <input class="btn" type="reset" value="Reset">
+                                    
+                    </form>
+                </div>
+                <div class="span5">
+                    <table class="table table-hover" id="Items">
+                        <thead>
+                            <th>Image</th><th>Name</th><th>Create Time</th>
+                        </thead>
+                        <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                        {% for item in item %}
+                        {% if item.name %}
+                        <tr><td>{{item.picture}}</td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+                <!-- show comments here -->
             </div>
             {% elif results %}
             <div class="row">
@@ -143,8 +187,8 @@
             <div class="span6 offset3">
                 <div class="hero-unit">
                     <h1>Vote.Simplicity.</h1>
-                    <p>Voting is simpler than you can imagine.</p>
-                    <p>This function right now is unfortunately unavaible.</p>
+                    <p></p>
+                    <p class="alert alert-info">This function right now is unfortunately unavaible.</p>
                     {% if not username %}
                     <a class="btn btn-primary btn-large" href="{{ url }}">
                         Login
