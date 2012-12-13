@@ -28,9 +28,9 @@ class Item(db.Model):
     picture = db.BlobProperty(default='img/ny.jpg')
 
 class Vote(db.Model):
-    voter = db.Key()
-    voted_item = db.Key()
-    unvoted_item = db.Key()
+    voter = db.UserProperty(auto_current_user_add=True)
+    voted_item = db.ReferenceProperty(Item)
+    unvoted_item = db.ReferenceProperty(Item)
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
 class Comment(db.Model):
@@ -86,6 +86,15 @@ def listItem(query):
     list = q.run()
     return list
 
+#insert a new vote
+
+#count all votes under the item
+
+#show 2 random items under the category
+
+#list all voting results under the category
+
+
 class AddCat(webapp2.RequestHandler):
     def post(self):
         cat_name = self.request.get('cat_name')
@@ -138,6 +147,10 @@ class Dispatcher(webapp2.RequestHandler):
             
                 elif self.request.get('item_name'):
                     cat_name = self.request.get('parent')
+                    cat_id = cat_key(user_id, cat_name)
+                    item_name = self.request.get('item_name')
+                    query = { 'ancestor' : item_name }
+                    """Todo: list comment"""
         
             else:
                 query = { 'ancestor' :user_key(user_id) }
