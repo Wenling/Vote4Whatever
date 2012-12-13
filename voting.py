@@ -159,14 +159,14 @@ class VoteItem(webapp2.RequestHandler):
             self.redirect('/?' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
         
         elif self.request.get('not_skip'):
-            not_skip = self.request.get('skip_item')
+            not_skip = self.request.get('not_skip')
             item = self.request.get('item')
             skip_item = self.request.get('skip_item')
             
             #self.response.out.write(item)
 #self.response.out.write(skip_item)
 
-            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'skip_item': skip_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
 
 
 class Dispatcher(webapp2.RequestHandler):
@@ -221,21 +221,27 @@ class Dispatcher(webapp2.RequestHandler):
                     not_skip = 0
                     if self.request.get('not_skip'):
                         not_skip = self.request.get('not_skip')
+                        skip_item = self.request.get('skip_item')
                         query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
                         item1 = searchItem(query).next()
+                        self.response.out.write(item1)
+                    
+                        item2 = pickRandom(cat_id)
+                        while not item2 or (item2 and item2.name == item1.name) or (item2.name == skip_item):
+                            item2 = pickRandom(cat_id)
                     else:
                         item1 = pickRandom(cat_id)
                         while not item1:
                             item1 = pickRandom(cat_id)
                             
-                    item2 = pickRandom(cat_id)
-                    while not item2 or (item2 and item2.name == item1.name):
                         item2 = pickRandom(cat_id)
+                        while not item2 or (item2 and item2.name == item1.name):
+                            item2 = pickRandom(cat_id)
             
-                    if not_skip == 2:
-                        template_values['vote'] = [item2, item1]
-                    else:
+                    if not_skip == 1:
                         template_values['vote'] = [item1, item2]
+                    else:
+                        template_values['vote'] = [item2, item1]
         
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
