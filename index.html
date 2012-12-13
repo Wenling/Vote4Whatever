@@ -103,7 +103,7 @@
                     <form action="/addItem" method="post">
                         <legend>Item Name:<input type="text" name="item_name"></legend>
                         <legend>Image: <input type="file" name="picture"></legend>
-                        <input type="hidden" name = 'cat_name' value={{ cat_name }}>
+                        <input type="hidden" name = 'cat_id' value={{cat_id}}>
                         <input class="btn btn-primary" type="submit" value="Add Item">
                             <input class="btn" type="reset" value="Reset">
                                 
@@ -114,10 +114,9 @@
                         <thead>
                             <th></th><th>Image</th><th>Name</th><th>Create Time</th>
                         </thead>
-                        <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                         {% for item in items %}
                         {% if item.name %}
-                        <tr><td><a href="#">Edit</a></td><td>{{item.picture}}</td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                        <tr><td><a href="#">Edit</a></td><td>Image</td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
                         {% endif %}
                         {% endfor %}
                     </table>
@@ -142,14 +141,11 @@
         <div class="row">
             <div class="span6 offset3">
             <div class="hero-unit">
-                <h1>Vote.Simplicity.</h1>
-                <p>Voting is simpler than you can imagine.</p>
-                <p>This function right now is unfortunately unavaible.</p>
-                {% if not username %}
+                <h1>Vote.Simple.</h1>
+                <p>Voting is more simple than you can imagine.</p>
                 <a class="btn btn-primary btn-large" href="{{ url }}">
                     Login
                 </a>
-                {% endif %}
             </div>
             </div>
         </div>

@@ -5,7 +5,6 @@ import webapp2
 
 from google.appengine.ext import db
 from google.appengine.api import users
-from google.appengine.api import images
 
 import jinja2
 import os
@@ -43,8 +42,11 @@ class Comment(db.Model):
 def user_key(user_id=None):
     return db.Key.from_path('UserId', user_id or 'default_user')
 
-def cat_key(user_id=None, cat_name=None):
-    return db.Key.from_path('UserId', user_id, 'CatId', cat_name)
+def user_key(cat_id=None):
+    return db.Key.from_path('CatId', cat_id)
+
+def user_key(item_id=None):
+    return db.Key.from_path('ItemId', item_id)
 
 """These functions are the models' manipulations"""
 #insert a new category
@@ -52,7 +54,7 @@ def insertCat(user_id, cat_name):
     cat_expt = datetime.datetime(2013, 11, 1, 1)
     cat = Category(parent=user_id, key_name=cat_name, name=cat_name, expiration_time=cat_expt)
     cat.put()
-    return cat
+    return cat.key()
 
 #list all categories under the user
 def listCat(query):
@@ -73,7 +75,7 @@ def insertItem(user_id, cat_id, item_name, pic_dir):
         if pic_dir:
             item.picture = db.Blob(open(pic_dir, "rb").read())
         item.put()
-        return item
+        return item.key()
 
 #list all items under the category
 def listItem(query):
@@ -101,23 +103,19 @@ class AddCat(webapp2.RequestHandler):
         
         if users.get_current_user():
             user_id = user_key(users.get_current_user().user_id())
-            cat = insertCat(user_id, cat_name)
+            cat_id = insertCat(user_id, cat_name)
             #self.response.out.write(cat_id)
-            self.redirect('/?' + urllib.urlencode({'cat_name': cat.name}))
+            self.redirect('/?' + urllib.urlencode({'cat_id': cat_id}))
 
 class AddItem(webapp2.RequestHandler):
     def post(self):
-        user_id = users.get_current_user().user_id()
+        user_id = user_key(users.get_current_user().user_id())
         #self.response.out.write(user_id)
-        cat_name = self.request.get('cat_name')
-#self.response.out.write(cat_name)
-        cat_id = cat_key(user_id, cat_name)
+        cat_id = self.request.get('cat_id')
         item_name = self.request.get('item_name')
         pic_dir = self.request.get('picture')
-        item = insertItem(user_key(user_id), cat_id, item_name, pic_dir)
-#self.response.out.write(item.name)
-        
-        self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&'+ urllib.urlencode({'item_name': item_name}))
+        item_id = insertItem(user_id, cat_id, item_name, pic_dir)
+        self.redirect('/?' + urllib.urlencode({'cat_id': cat_id}))
 
 
 class Dispatcher(webapp2.RequestHandler):
@@ -137,12 +135,11 @@ class Dispatcher(webapp2.RequestHandler):
                     list = listCat(query)
                     template_values['categories'] = list
             
-                elif self.request.get('cat_name'):
-                    cat_name = self.request.get('cat_name')
-                    cat_id = cat_key(user_id, cat_name)
-                    query = {'ancestor' : cat_id}
+                elif self.request.get('cat_id'):
+                    query = {'ancestor' : user_key(self.request.get('cat_id'))}
                     list = listItem(query)
                     template_values['items'] = list
+<<<<<<< HEAD
                     template_values['cat_name'] = cat_name
             
                 elif self.request.get('item_name'):
@@ -151,6 +148,8 @@ class Dispatcher(webapp2.RequestHandler):
                     item_name = self.request.get('item_name')
                     query = { 'ancestor' : item_name }
                     """Todo: list comment"""
+=======
+>>>>>>> parent of f359e45... finally add item and list item works
         
             else:
                 query = { 'ancestor' :user_key(user_id) }
