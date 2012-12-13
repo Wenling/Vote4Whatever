@@ -9,6 +9,7 @@ from google.appengine.api import images
 
 import jinja2
 import os
+import random
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -33,9 +34,9 @@ class Item(db.Model):
     picture = db.BlobProperty(default='img/ny.jpg')
 
 class Vote(db.Model):
-    voter = db.Key()
-    voted_item = db.Key()
-    unvoted_item = db.Key()
+    voter = db.StringProperty()
+    voted_item = db.ReferenceProperty(Item)
+    favored = db.BooleanProperty()
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
 class Comment(db.Model):
@@ -50,6 +51,9 @@ def user_key(user_id=None):
 
 def cat_key(user_id=None, cat_name=None):
     return db.Key.from_path('UserId', user_id, 'CatId', cat_name)
+
+def item_key(cat_id=None, item_name=None):
+    return db.Key.from_path('CatId', cat_id, 'ItemId', item_name)
 
 """These functions are the models' manipulations"""
 #insert a new category
@@ -72,9 +76,9 @@ def searchCat(query):
     return list
 
 #insert a new item, will check for the user is valid to add item in that category
-def insertItem(user_id, cat_id, item_name, pic_dir):
-    rand = random.random()
-    item = Item(parent=cat_id, key_name=item_name, name=item_name, rand=rand)
+def insertItem(cat_id, item_name, pic_dir):
+    randnum = random.random()
+    item = Item(parent=cat_id, key_name=item_name, name=item_name, rand=randnum)
     if pic_dir:
         item.picture = db.Blob(open(pic_dir, "rb").read())
     item.put()
@@ -86,18 +90,27 @@ def searchItem(query):
     for k in query:
         if k=='ancestor':
             q.ancestor(query[k])
+        elif k=='rand':
+            q.filter('Item.rand >=', query[k])
         else:
             q.filter(k, query[k])
     list = q.run()
     return list
 
 #insert a new vote
+def insertVote(voter, voted_item_id, favored):
+    vote = Vote(voted_item=voted_item_id, favored=favored, voter=voter)
+    vote.put()
+    return vote
 
 #count all votes under the item
 
 #get random items under the category
 def pickRandom(cat_id):
-    
+    r = random.random()
+    q = Item.all()
+    q.filter('rand >=', r).order('rand')
+    return q.get()
 
 #list all voting results under the category
 
@@ -123,14 +136,38 @@ class AddItem(webapp2.RequestHandler):
             cat_id = cat_key(owner_id, cat_name)
             item_name = self.request.get('item_name')
             pic_dir = self.request.get('picture')
-            item = insertItem(user_key(user_id), cat_id, item_name, pic_dir)
+            item = insertItem(cat_id, item_name, pic_dir)
         #self.response.out.write(item.name)
         
         self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
 
-class Vote(webapp2.RequestHandler):
-    def post(self):
-        vote_cat = self.request.get('cat')
+class VoteItem(webapp2.RequestHandler):
+    def get(self):
+        cat_name = self.request.get('cat_name')
+        owner_id = self.request.get('owner')
+        user_id = users.get_current_user().user_id()
+        cat_id = owner_id + '/' + cat_name
+        
+        if self.request.get('item_name'):
+            item_name = self.request.get('item_name')
+            unvoted_item = self.request.get('unvote_item')
+            item1_id = item_key(cat_id, item_name)
+            item2_id = item_key(cat_id, unvoted_item)
+            vote1 = insertVote(user_id, item1_id, True)
+            vote2 = insertVote(user_id, item2_id, False)
+        
+            self.redirect('/?' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+        
+        elif self.request.get('not_skip'):
+            not_skip = self.request.get('skip_item')
+            item = self.request.get('item')
+            skip_item = self.request.get('skip_item')
+            
+            #self.response.out.write(item)
+#self.response.out.write(skip_item)
+
+            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -179,12 +216,30 @@ class Dispatcher(webapp2.RequestHandler):
                     vote_cat = self.request.get('vote_cat')
                     cat_id = cat_key(owner_id, vote_cat)
                     
+                    template_values['vote'] = []
+                    
+                    not_skip = 0
+                    if self.request.get('not_skip'):
+                        not_skip = self.request.get('not_skip')
+                        query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
+                        item1 = searchItem(query).next()
+                    else:
+                        item1 = pickRandom(cat_id)
+                        while not item1:
+                            item1 = pickRandom(cat_id)
+                            
+                    item2 = pickRandom(cat_id)
+                    while not item2 or (item2 and item2.name == item1.name):
+                        item2 = pickRandom(cat_id)
             
-            else:
-                query = { 'ancestor' :user_key(user_id) }
-                cats = searchCat(query)
-                template_values['categories'] = cats
+                    if not_skip == 2:
+                        template_values['vote'] = [item2, item1]
+                    else:
+                        template_values['vote'] = [item1, item2]
         
+                    template_values['owner'] = owner_id
+                    template_values['cat'] = vote_cat
+                            
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
@@ -193,10 +248,11 @@ class Dispatcher(webapp2.RequestHandler):
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
         template_values['username'] = username
+        template_values['user_id'] = user_id
         
         
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', Vote)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem)], debug=True)
