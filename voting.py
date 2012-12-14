@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import cgi
 import datetime
 import urllib
@@ -8,12 +9,15 @@ from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
+from google.appengine.api import files
 
 import jinja2
 import os
 import random
 import operator
 import xml.dom.minidom
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element, SubElement, Comment
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -174,6 +178,13 @@ def getText(nodelist):
             rc.append(node.data)
     return ''.join(rc)
 
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+        """
+    rough_string = ElementTree.tostring(elem, 'utf-8')
+    reparsed = xml.dom.minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
 class AddCat(webapp2.RequestHandler):
     def post(self):
         cat_name = self.request.get('cat_name')
@@ -247,11 +258,64 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
             for item in items:
                 cat_id = cat_key(user_id, name)
                 item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                #haven't save images
                 insertItem(cat_id, item_name,None)
             self.redirect('/?category=a')
         
                 #except:
 #self.redirect('/?upload_failure=true&categories=a')
+
+class ExportHandler(webapp2.RequestHandler):    
+    def get(self):
+        cat_name = self.request.get('cat_name')
+        owner_id = self.request.get('owner')
+        self.response.out.write(cat_name)
+        
+        cat_id = cat_key(owner_id, cat_name)
+        query = {'ancestor' : cat_id}
+        list = searchItem(query)
+    
+        # make items into xml
+        top = ElementTree.Element('top')
+    
+        comment = ElementTree.Comment('Generated automatically by 1010Ling.')
+        top.append(comment)
+    
+        child = SubElement(top, 'NAME')
+        child.text = cat_name
+    
+        for item in list:
+            i = SubElement(top, 'ITEM')
+            name = SubElement(i, 'NAME')
+            name.text = item.name
+            create_time = SubElement(i, 'CREATE_TIME')
+            create_time.text = item.create_time.ctime()
+            #pic = SubElement(i, 'PICTURE')
+            #pic.text = blobstore.BlobInfo.get(item.picture).dump()
+    
+        data = prettify(top)
+    
+        # Create the file
+        file_name = files.blobstore.create(mime_type='application/octet-stream')
+    
+        # Open the file and write to it
+        with files.open(file_name, 'a') as f:
+            f.write(data)
+    
+        # Finalize the file. Do this before attempting to read it.
+        files.finalize(file_name)
+    
+        # Get the file's blob key
+        blob_key = files.blobstore.get_blob_key(file_name)
+        self.redirect('/export/%s' % blob_key)
+
+class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, file_key):
+        if not blobstore.get(file_key):
+            self.error(404)
+        else:
+            self.send_blob(file_key)
+            #self.response.out.write(file_key)
         
 
 class Dispatcher(webapp2.RequestHandler):
@@ -270,11 +334,19 @@ class Dispatcher(webapp2.RequestHandler):
             
             if self.request.arguments():
                 if self.request.get('category'):
-                    query = { 'ancestor' :user_key(user_id) }
-                    list = searchCat(query)
+                    if self.request.get('category')=='all':
+                        query = {}
+                        list = searchCat(query)
+                        template_values['view'] = True
+    
+                    else:
+                        query = { 'ancestor' :user_key(user_id) }
+                        list = searchCat(query)
+                        upload_url = blobstore.create_upload_url('/import')
+                        template_values['import'] = upload_url
+                        template_values['view'] = False
+                
                     template_values['categories'] = list
-                    upload_url = blobstore.create_upload_url('/import')
-                    template_values['import'] = upload_url
                 
                 elif self.request.get('cat_name'):
                     cat_name = self.request.get('cat_name')
@@ -295,6 +367,7 @@ class Dispatcher(webapp2.RequestHandler):
                     list = searchItem(query)
                     template_values['item'] = list
                     template_values['cat_name'] = cat_name
+                    template_values['owner'] = owner_id
                         
                 elif self.request.get('vote_cat')=='all':
                     query = {}
@@ -332,8 +405,8 @@ class Dispatcher(webapp2.RequestHandler):
                         
                         item2 = pickRandom(cat_id)
                         while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
-                            item2 = pickRandom(cat_id)
-            
+                            item2 = pickRandom(cat_id)                                               
+                                                  
                     else:
                         item1 = pickRandom(cat_id)
                         while not item1:
@@ -370,6 +443,7 @@ class Dispatcher(webapp2.RequestHandler):
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
 
+
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
@@ -383,4 +457,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat)], debug=True)

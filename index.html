@@ -17,7 +17,7 @@
                         <ul class="dropdown-menu">
                             <li><a tabindex="-1" href="/?category=a">View My Categories</a></li>
                             <li class="divider"></li>
-                            <li><a tabindex="-1" href="/">Return Home</a></li>
+                            <li><a tabindex="-1" href="/?category=all">Explore All Categories</a></li>
                         </ul>
                     </li>
                     {% if username %}
@@ -100,6 +100,7 @@
             </div>
             {% elif categories %}
             <div class="row">
+                {% if view==False %}
                 <div class="span4">
                     <ul class="nav nav-tabs" id="myTab">
                         <li class="active"><a href="#addCat">Add a Category</a></li>
@@ -138,6 +139,9 @@
                                         
                 </div>
                 <div class="span5">
+                {% else %}
+                <div class = "span9">
+                {% endif %}
                     <table class="table table-hover" id="Categories">
                         <thead>
                             <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
@@ -145,7 +149,13 @@
                         <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                         {% for cat in categories %}
                         {% if cat.name %}
-                        <tr><td><a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a></td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        <tr><td>
+                            {% if view==False %}
+                            <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                            {% else %}
+                            <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                            {% endif %}
+                        </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
                         {% endif %}
                         {% endfor %}
                     </table>
@@ -153,6 +163,13 @@
             </div>
             {% elif items %}
             <div class="row">
+                <div class="row">
+                    <div class="span3 offset7">
+                        <a class="btn btn-info"href="/export?cat_name={{cat_name}}&owner={{owner}}">Export <b>{{cat_name}}</b> as XML</a>
+                    </div>
+                </div>
+                
+                {% if owner_id == user_id %}
                 <div class="span3">
                     <form action="/addItem" method="post">
                         <legend>Item Name:<input type="text" name="item_name"></legend>
@@ -160,11 +177,14 @@
                         <input type="hidden" name = 'cat_name' value={{ cat_name }}>
                         <input type="hidden" name = 'owner' value={{ owner }}>
                             <input class="btn btn-primary" type="submit" value="Add Item">
-                                <input class="btn" type="reset" value="Reset">
+                            <input class="btn" type="reset" value="Reset">
                                     
-                                    </form>
+                    </form>
                 </div>
                 <div class="span6">
+                {% else %}
+                <div class="span9">
+                {% endif %}
                     <table class="table table-hover" id="Items">
                         <thead>
                             <th></th><th></th><th>Image</th><th>Name</th><th>Create Time</th>
