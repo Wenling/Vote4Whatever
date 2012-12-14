@@ -74,8 +74,7 @@ def searchCat(query):
             q.ancestor(query[k])
         else:
             q.filter(k, query[k])
-    list = q.run()
-    return list
+    return q
 
 #insert a new item, will check for the user is valid to add item in that category
 def insertItem(cat_id, item_name, pic_dir):
@@ -196,7 +195,7 @@ class VoteItem(webapp2.RequestHandler):
             vote1 = insertVote(user_id, item1_id, True)
             vote2 = insertVote(user_id, item2_id, False)
         
-            self.redirect('/?' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+            self.redirect('/?' + urllib.urlencode({'prev1' : item_name}) + '&' + urllib.urlencode({'prev2' : unvoted_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
         
         elif self.request.get('not_skip'):
             not_skip = self.request.get('not_skip')
@@ -271,15 +270,27 @@ class Dispatcher(webapp2.RequestHandler):
                         self.response.out.write(item1)
                     
                         item2 = pickRandom(cat_id)
-                        while not item2 or (item2 and item2.name == item1.name) or (item2.name == skip_item):
+                        while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                             item2 = pickRandom(cat_id)
+            
+                    elif self.request.get('prev1'):
+                        prev1 = self.request.get('prev1')
+                        prev2 = self.request.get('prev2')
+                        item1 = pickRandom(cat_id)
+                        while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
+                            item1 = pickRandom(cat_id)
+                        
+                        item2 = pickRandom(cat_id)
+                        while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
+                            item2 = pickRandom(cat_id)
+            
                     else:
                         item1 = pickRandom(cat_id)
                         while not item1:
                             item1 = pickRandom(cat_id)
                             
                         item2 = pickRandom(cat_id)
-                        while not item2 or (item2 and item2.name == item1.name):
+                        while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
             
                     if not_skip == 1:
@@ -303,7 +314,8 @@ class Dispatcher(webapp2.RequestHandler):
                 elif self.request.get('stats')=='all':
                     query = {}
                     list = searchCat(query)
-                    template_values['stats_cat'] = list
+                    
+                    template_values['stats_cat'] = list.run()
                         
 
         else:
