@@ -10,6 +10,7 @@ from google.appengine.api import images
 import jinja2
 import os
 import random
+import operator
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -133,6 +134,7 @@ def countVote(query):
 #list all voting results under the category
 def listResult(owner_id, cat_name, user_id):
     results = {}
+    not_voted = {}
     cat_id = cat_key(owner_id, cat_name)
     query = {'ancestor':cat_id}
     items = searchItem(query)
@@ -145,11 +147,12 @@ def listResult(owner_id, cat_name, user_id):
         
         if favored_count == 0 and un_count == 0:
             percent = 0
+            not_voted[item.name] = [0, 0, '-']
         else:        
             percent = favored_count / (0.0 + favored_count + un_count)
-        results[item.name] = [favored_count, un_count, percent]
+            results[item.name] = [favored_count, un_count, percent]
     
-    return results
+    return results, not_voted
 
 class AddCat(webapp2.RequestHandler):
     def post(self):
@@ -292,8 +295,10 @@ class Dispatcher(webapp2.RequestHandler):
                     stats_cat = self.request.get('stats_cat')
                     #cat_id = cat_key(owner_id, stats_cat)
                     
-                    results = listResult(owner_id, stats_cat, user_id)
-                    template_values['results'] = results
+                    results, unvoted = listResult(owner_id, stats_cat, user_id)
+                    results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
+                    template_values['results'] = results_sorted
+                    template_values['unvoted'] = unvoted
                             
         else:
             url = users.create_login_url(self.request.uri)

@@ -186,9 +186,17 @@
                     </thead>
                     <tbody>
                         {% for name in results %}
-                        {% if results[name] %}
+                        {% if name %}
                         <tr>
-                            <td>{{name}}</td><td>{{results[name][0]}}</td><td>{{results[name][1]}}</td><td>{{results[name][2]}}</td>
+                            <td>{{name[0]}}</td><td>{{name[1][0]}}</td><td>{{name[1][1]}}</td><td>{{name[1][2]}}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% for name in unvoted %}
+                        {% if unvoted[name] %}
+                        <tr>
+                            <td>{{name}}</td><td>{{unvoted[name][0]}}</td><td>{{unvoted[name][1]}}</td><td>{{unvoted[name][2]}}</td>
                         </tr>
                         {% endif %}
                         {% endfor %}
