@@ -52,6 +52,11 @@
             </div>
             {% elif vote %}
             <div class="row">
+                <div class="span8 offset1">
+                    <div class="alert alert-block">
+                        <center>You vote <b>{{prev1}}</b> over <b>{{prev2}} </b></center>
+                    </div>
+                </div>
                 <div class="span9">
                     <div class="row">
                         <div class="span1"></div>
@@ -89,7 +94,7 @@
                 </div>
                 <div class="span8 offset1">
                     <div class="alert alert-block">
-                        <center><h3><a href="/?stats_cat={{cat}}&owner={{owner}}">See how others vote</a></h3></center>
+                        <center><h4><a href="/?stats_cat={{cat}}&owner={{owner}}">See what everyone votes</a></h4></center>
                     </div>
                 </div>
             </div>

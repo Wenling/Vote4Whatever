@@ -41,9 +41,9 @@ class Vote(db.Model):
     favored = db.BooleanProperty()
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
+#comment has ancestor item
 class Comment(db.Model):
-    commenter = db.Key()
-    item = db.Key()
+    commenter = db.StringProperty()
     create_time = db.DateTimeProperty()
     content = db.StringProperty()
 
@@ -111,6 +111,17 @@ def searchVote(query):
         q.filter(k, query[k])
     list = q.run()
     return list
+
+#remove all votes given the item
+
+#remove the item give id
+
+#remove the category given category id
+
+#insert comment given item id
+
+#search comments given query
+
 
 #get random items under the category
 def pickRandom(cat_id):
@@ -276,6 +287,9 @@ class Dispatcher(webapp2.RequestHandler):
                     elif self.request.get('prev1'):
                         prev1 = self.request.get('prev1')
                         prev2 = self.request.get('prev2')
+                        template_values['prev1'] = prev1
+                        template_values['prev2'] = prev2
+                        
                         item1 = pickRandom(cat_id)
                         while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
                             item1 = pickRandom(cat_id)
