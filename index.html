@@ -101,13 +101,41 @@
             {% elif categories %}
             <div class="row">
                 <div class="span4">
-                    <form action="/addCat" method="post">
-                        <legend>Category Name:<input type="text" name="cat_name"></legend>
-                        <legend>Expiration Time: <input type="text" name="expiration_time"></legend>
-                        <input class="btn btn-primary" type="submit" value="Add Category">
-                            <input class="btn" type="reset" value="Reset">
-                                
-                                </form>
+                    <ul class="nav nav-tabs" id="myTab">
+                        <li class="active"><a href="#addCat">Add a Category</a></li>
+                        <li><a href="#importCat">Import a Category</a></li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        {% if upload_failure %}
+                        <div class="alert alert-error">
+                            Upload failed..
+                        </div>
+                        {% endif %}
+                        <div class="tab-pane active" id="addCat">
+                            <form action="/addCat" method="post">
+                                <legend>Category Name:<input type="text" name="cat_name"></legend>
+                                <legend>Expiration Time: <input type="text" name="expiration_time"></legend>
+                                <input class="btn btn-primary" type="submit" value="Add Category">
+                                <input class="btn" type="reset" value="Reset">
+                            </form>
+                        </div>
+                        <div class="tab-pane" id="importCat">
+                            <form action={{import}} method="post" enctype="multipart/form-data">
+                                <legend>Import Category directly from here: <br/><input type="file" name="cat_path"></legend>
+                                <input class="btn btn-primary" type="submit" value="Add Category">
+                                <input class="btn" type="reset" value="Reset">
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        $('#myTab a').click(function (e) {
+                                            e.preventDefault();
+                                            $(this).tab('show');
+                                            })
+                    </script>
+                                        
                 </div>
                 <div class="span5">
                     <table class="table table-hover" id="Categories">

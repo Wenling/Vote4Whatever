@@ -6,11 +6,14 @@ import webapp2
 from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.api import images
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
 
 import jinja2
 import os
 import random
 import operator
+import xml.dom.minidom
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -164,6 +167,13 @@ def listResult(owner_id, cat_name, user_id):
     
     return results, not_voted
 
+def getText(nodelist):
+    rc = []
+    for node in nodelist:
+        if node.nodeType == node.TEXT_NODE:
+            rc.append(node.data)
+    return ''.join(rc)
+
 class AddCat(webapp2.RequestHandler):
     def post(self):
         cat_name = self.request.get('cat_name')
@@ -218,7 +228,31 @@ class VoteItem(webapp2.RequestHandler):
 
             self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'skip_item': skip_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
 
-
+class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
+    def post(self):
+        #try:
+            upload = self.get_uploads()[0]
+            blob_key=upload.key()
+            blob_reader = blobstore.BlobReader(blob_key)
+            document = blob_reader.read()
+            dom = xml.dom.minidom.parseString(document)
+            cat_name = dom.getElementsByTagName("NAME")[0]
+            user_id = users.get_current_user().user_id()
+            user_name = users.get_current_user().nickname()
+            
+            name = getText(cat_name.childNodes)
+            cat = insertCat(user_id, user_name, name)
+            items = dom.getElementsByTagName("ITEM")
+    
+            for item in items:
+                cat_id = cat_key(user_id, name)
+                item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                insertItem(cat_id, item_name,None)
+            self.redirect('/?category=a')
+        
+                #except:
+#self.redirect('/?upload_failure=true&categories=a')
+        
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -239,6 +273,8 @@ class Dispatcher(webapp2.RequestHandler):
                     query = { 'ancestor' :user_key(user_id) }
                     list = searchCat(query)
                     template_values['categories'] = list
+                    upload_url = blobstore.create_upload_url('/import')
+                    template_values['import'] = upload_url
                 
                 elif self.request.get('cat_name'):
                     cat_name = self.request.get('cat_name')
@@ -330,7 +366,9 @@ class Dispatcher(webapp2.RequestHandler):
                     list = searchCat(query)
                     
                     template_values['stats_cat'] = list.run()
-                        
+    
+                elif self.request.get('upload_failure'):
+                    template_values['upload_failure'] = True
 
         else:
             url = users.create_login_url(self.request.uri)
@@ -345,4 +383,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat)], debug=True)

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		AA0F2A3E167B0BB0000D0694 /* cat.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = cat.xml; sourceTree = "<group>"; };
 		AA16FF381677E155008F2A42 /* app.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = app.yaml; path = ../app.yaml; sourceTree = "<group>"; };
 		AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.css"; sourceTree = "<group>"; };
 		AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.min.css"; sourceTree = "<group>"; };
@@ -30,9 +31,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		AA0F2A3D167B0BB0000D0694 /* file */ = {
+			isa = PBXGroup;
+			children = (
+				AA0F2A3E167B0BB0000D0694 /* cat.xml */,
+			);
+			name = file;
+			path = ../file;
+			sourceTree = "<group>";
+		};
 		AA16FF2F1677E142008F2A42 = {
 			isa = PBXGroup;
 			children = (
+				AA0F2A3D167B0BB0000D0694 /* file */,
 				AA16FF381677E155008F2A42 /* app.yaml */,
 				AA16FF391677E155008F2A42 /* css */,
 				AA16FF3F1677E155008F2A42 /* favicon.ico */,
