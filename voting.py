@@ -299,7 +299,13 @@ class Dispatcher(webapp2.RequestHandler):
                     results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
                     template_values['results'] = results_sorted
                     template_values['unvoted'] = unvoted
-                            
+    
+                elif self.request.get('stats')=='all':
+                    query = {}
+                    list = searchCat(query)
+                    template_values['stats_cat'] = list
+                        
+
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'

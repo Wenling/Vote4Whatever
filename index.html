@@ -15,14 +15,14 @@
                 <ul class="nav">
                     <li class="active"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>{{ username }}</b><b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a tabindex="-1" href="/?category=a">View Category</a></li>
+                            <li><a tabindex="-1" href="/?category=a">View My Categories</a></li>
                             <li class="divider"></li>
                             <li><a tabindex="-1" href="/">Return Home</a></li>
                         </ul>
                     </li>
                     {% if username %}
                     <li><a href="/?vote_cat=all">Vote</a></li>
-                    <li><a href="/?stats">Voting Stats</a></li>
+                    <li><a href="/?stats=all">Voting Stats</a></li>
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
                 </ul>
@@ -37,7 +37,7 @@
             {% if vote_cat %}
             <div class="row">
                 <div class="span9">
-                    <table class="table table-hover" id="Items">
+                    <table class="table table-hover" id="Vote_Categories">
                         <thead>
                             <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
                         </thead>
@@ -105,7 +105,7 @@
                                 </form>
                 </div>
                 <div class="span5">
-                    <table class="table table-hover" id="Items">
+                    <table class="table table-hover" id="Categories">
                         <thead>
                             <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
                         </thead>
@@ -163,7 +163,7 @@
                     </form>
                 </div>
                 <div class="span5">
-                    <table class="table table-hover" id="Items">
+                    <table class="table table-hover" id="Item">
                         <thead>
                             <th>Image</th><th>Name</th><th>Create Time</th>
                         </thead>
@@ -201,6 +201,22 @@
                         {% endif %}
                         {% endfor %}
                     </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif stats_cat %}
+        <div class="row">
+            <div class="span9">
+                <table class="table table-hover" id="Category">
+                    <thead>
+                        <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                    </thead>
+                    <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                    {% for cat in stats_cat %}
+                    {% if cat.name %}
+                    <tr><td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                    {% endif %}
+                    {% endfor %}
                 </table>
             </div>
         </div>
