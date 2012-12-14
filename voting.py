@@ -50,8 +50,9 @@ class Vote(db.Model):
 
 #comment has ancestor item
 class Comment(db.Model):
+    commenter_id = db.StringProperty()
     commenter = db.StringProperty()
-    create_time = db.DateTimeProperty()
+    create_time = db.DateTimeProperty(auto_now_add=True)
     content = db.StringProperty()
 
 """Used to retrieve the keys of the model given a user's information"""
@@ -102,8 +103,7 @@ def searchItem(query):
             q.filter('Item.rand >=', query[k])
         else:
             q.filter(k, query[k])
-    list = q.run()
-    return list
+    return q
 
 #insert a new vote
 def insertVote(voter, voted_item_id, favored):
@@ -126,9 +126,20 @@ def searchVote(query):
 #remove the category given category id
 
 #insert comment given item id
+def insertComment(commenter, commenter_id, item_id, content):
+    comment = Comment(parent=item_id, commenter = commenter, commenter_id = commenter_id, content = content)
+    comment.put()
+    return comment
 
 #search comments given query
-
+def searchComment(query):
+    q = Comment.all()
+    for k in query:
+        if k=='ancestor':
+            q.ancestor(query[k])
+        else:
+            q.filter(k, query[k])
+    return q
 
 #get random items under the category
 def pickRandom(cat_id):
@@ -316,7 +327,22 @@ class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
         else:
             self.send_blob(file_key)
             #self.response.out.write(file_key)
+
+class AddComment(webapp2.RequestHandler):
+    def post(self):
+        user_id = users.get_current_user().user_id()
+        user_name = users.get_current_user().nickname()
+        #self.response.out.write(user_id)
+        cat_name = self.request.get('cat_name')
+        #self.response.out.write(cat_name)
+        owner_id = self.request.get('owner')
+        item_name = self.request.get('item_name')
+        #self.response.out.write(item_name)
+        content = self.request.get('content')
+        item_id = item_key(owner_id+'/'+cat_name, item_name)
+        insertComment(user_name, user_id, item_id, content)
         
+        self.redirect('/?item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -364,10 +390,16 @@ class Dispatcher(webapp2.RequestHandler):
                     cat_id = cat_key(owner_id, cat_name)
                     item_name = self.request.get('item_name')
                     query = {'ancestor' : cat_id, 'name' : item_name}
-                    list = searchItem(query)
-                    template_values['item'] = list
+                    item = searchItem(query).get()
+                    
+                    item_id = item_key(owner_id+'/'+cat_name, item_name)
+                    q_comment = {'ancestor' : item_id}
+                    comments = searchComment(q_comment).run()
+                    
+                    template_values['item'] = item
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
+                    template_values['comments'] = comments
                         
                 elif self.request.get('vote_cat')=='all':
                     query = {}
@@ -457,4 +489,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment)], debug=True)
