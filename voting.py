@@ -33,9 +33,10 @@ class Item(db.Model):
     create_time = db.DateTimeProperty(auto_now_add=True)
     picture = db.BlobProperty(default='img/ny.jpg')
 
+#vote has ancestor item
 class Vote(db.Model):
     voter = db.StringProperty()
-    voted_item = db.ReferenceProperty(Item)
+    #voted_item = db.ReferenceProperty(Item)
     favored = db.BooleanProperty()
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
@@ -99,11 +100,17 @@ def searchItem(query):
 
 #insert a new vote
 def insertVote(voter, voted_item_id, favored):
-    vote = Vote(voted_item=voted_item_id, favored=favored, voter=voter)
+    vote = Vote(parent=voted_item_id, favored=favored, voter=voter)
     vote.put()
     return vote
 
-#count all votes under the item
+#list all votes under the item
+def searchVote(query):
+    q = Vote.all()
+    for k in query:
+        q.filter(k, query[k])
+    list = q.run()
+    return list
 
 #get random items under the category
 def pickRandom(cat_id):
@@ -112,7 +119,37 @@ def pickRandom(cat_id):
     q.filter('rand >=', r).order('rand')
     return q.get()
 
+#count all votes under the item
+def countVote(query):
+    q = db.Query(Vote)
+    for k in query:
+        if k=='ancestor':
+            q.ancestor(query[k])
+        else:
+            q.filter(k, query[k])
+    num = q.count()
+    return num
+
 #list all voting results under the category
+def listResult(owner_id, cat_name, user_id):
+    results = {}
+    cat_id = cat_key(owner_id, cat_name)
+    query = {'ancestor':cat_id}
+    items = searchItem(query)
+    for item in items:
+        item_id = item_key(owner_id + '/' + cat_name, item.name)
+        q_favored = {'ancestor' : item_id, 'favored' : True}
+        favored_count = countVote(q_favored)
+        q_un = {'ancestor' : item_id, 'favored' : False}
+        un_count = countVote(q_un)
+        
+        if favored_count == 0 and un_count == 0:
+            percent = 0
+        else:        
+            percent = favored_count / (0.0 + favored_count + un_count)
+        results[item.name] = [favored_count, un_count, percent]
+    
+    return results
 
 class AddCat(webapp2.RequestHandler):
     def post(self):
@@ -167,6 +204,7 @@ class VoteItem(webapp2.RequestHandler):
 #self.response.out.write(skip_item)
 
             self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'skip_item': skip_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+
 
 
 class Dispatcher(webapp2.RequestHandler):
@@ -248,6 +286,14 @@ class Dispatcher(webapp2.RequestHandler):
         
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
+
+                elif self.request.get('stats_cat'):
+                    owner_id = self.request.get('owner')
+                    stats_cat = self.request.get('stats_cat')
+                    #cat_id = cat_key(owner_id, stats_cat)
+                    
+                    results = listResult(owner_id, stats_cat, user_id)
+                    template_values['results'] = results
                             
         else:
             url = users.create_login_url(self.request.uri)

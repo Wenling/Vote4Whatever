@@ -22,7 +22,7 @@
                     </li>
                     {% if username %}
                     <li><a href="/?vote_cat=all">Vote</a></li>
-                    <li><a href="#">Voting Stats</a></li>
+                    <li><a href="/?stats">Voting Stats</a></li>
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
                 </ul>
@@ -85,6 +85,11 @@
                             
                         </ul>
                         
+                    </div>
+                </div>
+                <div class="span8 offset1">
+                    <div class="alert alert-block">
+                        <center><h3><a href="/?stats_cat={{cat}}&owner={{owner}}">See how others vote</a></h3></center>
                     </div>
                 </div>
             </div>
@@ -180,9 +185,13 @@
                         <tr><th>Name</th><th>Win</th><th>Lose</th><th>Percentage</th></tr>
                     </thead>
                     <tbody>
+                        {% for name in results %}
+                        {% if results[name] %}
                         <tr>
-                            <td></td><td></td><td></td><td></td>
+                            <td>{{name}}</td><td>{{results[name][0]}}</td><td>{{results[name][1]}}</td><td>{{results[name][2]}}</td>
                         </tr>
+                        {% endif %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
