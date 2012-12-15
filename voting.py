@@ -39,7 +39,7 @@ class Item(db.Model):
     name = db.StringProperty()
     rand = db.FloatProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
-    picture = db.BlobProperty(default='img/ny.jpg')
+    picture = db.BlobProperty(default='/images/ny.jpg')
 
 #vote has ancestor item
 class Vote(db.Model):
@@ -89,7 +89,7 @@ def insertItem(cat_id, item_name, pic_dir):
     randnum = random.random()
     item = Item(parent=cat_id, key_name=item_name, name=item_name, rand=randnum)
     if pic_dir:
-        item.picture = db.Blob(open(pic_dir, "rb").read())
+        item.picture = db.Blob(pic_dir)
     item.put()
     return item
 
@@ -232,12 +232,21 @@ class AddItem(webapp2.RequestHandler):
             query = {'ancestor':cat_id, 'name':item_name}
             if searchItem(query).count() == 0:
                 item = insertItem(cat_id, item_name, pic_dir)
-                #self.response.out.write(item.name)
+                #self.response.out.write(item.name)               
                     
                 self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
                 #self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
             else:
                 self.redirect('/?add_fail=true&cat_name=' + cat_name + '&owner=' + owner_id)
+
+class Image(webapp2.RequestHandler):
+    def get(self):
+        item = db.get(self.request.get('img_id'))
+        if item.picture:
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(item.picture)
+        else:
+            self.response.out.write('No image')
 
 class VoteItem(webapp2.RequestHandler):
     def get(self):
@@ -460,11 +469,14 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['owner'] = owner_id
                     
                     a = {}
+                    b = {}
                     i = 0
                     for item in list:
                         a[item.name] = i
                         i = i + 1
+                        b[item.name] = item.key()
                     template_values['id'] = a
+                    template_values['key'] = b
                     
                     if self.request.get('add_fail'):
                         template_values['add_fail'] = True
@@ -541,8 +553,10 @@ class Dispatcher(webapp2.RequestHandler):
                     
                     if not_skip == '1':
                         template_values['vote'] = [item1, item2]
+                        template_values['vote_key'] = [item1.key(), item2.key()]
                     else:
                         template_values['vote'] = [item2, item1]
+                        template_values['vote_key'] = [item2.key(), item1.key()]
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
                     
@@ -580,4 +594,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image)], debug=True)
