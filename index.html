@@ -173,13 +173,17 @@
                 
                 {% if owner == user_id %}
                 <div class="span3">
-                    <form action="/addItem" method="post">
-                        <legend>Item Name:<input type="text" name="item_name"></legend>
-                        <legend>Image: <input type="file" name="picture"></legend>
+                    <form action="/addItem" method="post" class="bs-docs-example ">
+                        <legend>Add a new one:</legend>
+                        <label>Item Name:</label><input type="text" name="item_name">
+                        <label>Image: </label><input type="file" name="picture">
                         <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
                         <input type="hidden" name = 'owner' value="{{ owner }}">
+                        <hr>
+                        <div class="controls">
                             <input class="btn btn-primary" type="submit" value="Add Item">
                             <input class="btn" type="reset" value="Reset">
+                        </div>
                                     
                     </form>
                 </div>
@@ -196,20 +200,25 @@
                         {% if item.name %}
                         <tr><td>
                             {% if user_id == owner %}
-                            <!-- Modal -->
-                            <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                                <form action="/removeItem" method="post">
-                                    <div class="modal-body">
-                                        <p>Are you sure to delete this item?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn" data-dismiss="modal" aria-hidden="true">No</button>
-                                        <input type="submit" value="Yes" class="btn btn-primary">
+                            <a href="#{{id[item.name]}}" data-toggle="modal">Remove</a></td><td>
+                                <!-- Modal -->
+                                <div id="{{id[item.name]}}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">                                                                            
+                                        <div class="modal-body">
+                                            <div class="alert">
+                                            <p>Are you sure to delete <b>{{ item.name }}</b>?</p>
                                             </div>
-                                </form>
-                            </div>
-                            <a href="#myModal">Remove</a></td><td>
-                                                           
+                                            
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="/removeItem" method="post">
+                                            <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                                            <input type="hidden" name = 'owner' value="{{ owner }}">
+                                            <input type="hidden" name = 'item_name' value="{{ item.name }}">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">No</button>
+                                            <input type="submit" value="Yes" class="btn btn-primary">
+                                            </form>
+                                        </div>                                   
+                                </div>
                             {% endif %}
                             <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>                            
                         </td><td>{{item.picture}}</td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
@@ -304,7 +313,7 @@
         <div class="row">
             <div class="span6 offset3">
                 <div class="hero-unit">
-                    <h1>Vote.Simplicity.</h1>
+                    <h1>Vote. Simplicity.</h1>
                     <p></p>
                     <p class="alert alert-info">This function right now is unfortunately unavaible.</p>
                     {% if not username %}

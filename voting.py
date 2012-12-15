@@ -44,8 +44,8 @@ class Item(db.Model):
 #vote has ancestor item
 class Vote(db.Model):
     voter = db.StringProperty()
-    #voted_item = db.ReferenceProperty(Item)
-    favored = db.BooleanProperty()
+    unvoted_item = db.ReferenceProperty()
+    #favored = db.BooleanProperty()
     vote_time = db.DateTimeProperty(auto_now_add=True)
 
 #comment has ancestor item
@@ -106,8 +106,8 @@ def searchItem(query):
     return q
 
 #insert a new vote
-def insertVote(voter, voted_item_id, favored):
-    vote = Vote(parent=voted_item_id, favored=favored, voter=voter)
+def insertVote(voter, voted_item_id, unvoted_item):
+    vote = Vote(parent=voted_item_id, unvoted_item=unvoted_item, voter=voter)
     vote.put()
     return vote
 
@@ -123,19 +123,25 @@ def searchVote(query):
 
 #remove all votes given the item
 @db.transactional
-def removeVote(query):
+def deleteVote(query):
     list = searchVote(query)
-    db.delete(list)    
+    db.delete(list)
+
+#remove all comments given the item
+@db.transactional
+def deleteComment(query):
+    list = searchComment(query)
+    db.delete(list)
 
 #remove the item give id
 @db.transactional
-def removeItem(query):
+def deleteItem(query):
     list = searchItem(query)
     db.delete(list)
 
 #remove the category given category id
 @db.transactional
-def removeCategory(query):
+def deleteCategory(query):
     list = searchCat(query)
     db.delete(list)
 
@@ -162,17 +168,6 @@ def pickRandom(cat_id):
     q.ancestor(cat_id).filter('rand >=', r).order('rand')
     return q.get()
 
-#count all votes under the item
-def countVote(query):
-    q = db.Query(Vote)
-    for k in query:
-        if k=='ancestor':
-            q.ancestor(query[k])
-        else:
-            q.filter(k, query[k])
-    num = q.count()
-    return num
-
 #list all voting results under the category
 def listResult(owner_id, cat_name, user_id):
     results = {}
@@ -182,10 +177,11 @@ def listResult(owner_id, cat_name, user_id):
     items = searchItem(query).run()
     for item in items:
         item_id = item_key(owner_id + '/' + cat_name, item.name)
-        q_favored = {'ancestor' : item_id, 'favored' : True}
-        favored_count = countVote(q_favored)
-        q_un = {'ancestor' : item_id, 'favored' : False}
-        un_count = countVote(q_un)
+        un_item = searchItem
+        q_favored = {'ancestor' : item_id}
+        favored_count = searchVote(q_favored).count()
+        q_un = {'unvoted_item' : item}
+        un_count = searchVote(q_un).count()
         
         if favored_count == 0 and un_count == 0:
             percent = 0
@@ -248,11 +244,12 @@ class VoteItem(webapp2.RequestHandler):
             item_name = self.request.get('item_name')
             unvoted_item = self.request.get('unvote_item')
             item1_id = item_key(cat_id, item_name)
-            item2_id = item_key(cat_id, unvoted_item)
-            vote1 = insertVote(user_id, item1_id, True)
-            vote2 = insertVote(user_id, item2_id, False)
+            query = {'ancestor':cat_key(owner_id, cat_name), 'name':unvoted_item}
+            item2 = searchItem(query).get()
+            vote1 = insertVote(user_id, item1_id, item2)
+        #self.response.out.write(item_name)
         
-            self.redirect('/?' + urllib.urlencode({'prev1' : item_name}) + '&' + urllib.urlencode({'prev2' : unvoted_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+            self.redirect('/?prev1=' + item_name + '&prev2=' + unvoted_item + '&vote_cat=' + cat_name + '&owner=' + owner_id)
         
         elif self.request.get('not_skip'):
             not_skip = self.request.get('not_skip')
@@ -262,7 +259,7 @@ class VoteItem(webapp2.RequestHandler):
             #self.response.out.write(item)
 #self.response.out.write(skip_item)
 
-            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&' + urllib.urlencode({'item': item}) + '&' + urllib.urlencode({'skip_item': skip_item}) + '&' + urllib.urlencode({'vote_cat': cat_name}) + '&' + urllib.urlencode({'owner':user_id}))
+            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&item=' + item + '&skip_item=' + skip_item + '&vote_cat=' + cat_name + '&' + urllib.urlencode({'owner':user_id}))
 
 class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
@@ -358,6 +355,25 @@ class AddComment(webapp2.RequestHandler):
         
         self.redirect('/?item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
 
+class RemoveItem(webapp2.RequestHandler):
+    def post(self):
+        user_id = users.get_current_user().user_id()
+        cat_name = self.request.get('cat_name')
+        owner_id = self.request.get('owner')
+        item_name = self.request.get('item_name')
+        item_id = item_key(owner_id+'/'+cat_name, item_name)
+        cat_id = cat_key(owner_id, cat_name)
+        q_vote = {'ancestor':item_id}
+        deleteVote(q_vote)
+        q_vote = {'unvoted_item': item_id}
+        deleteVote(q_vote)
+        q_comment = {'ancestor':item_id}
+        deleteComment(q_comment)
+        q_item = {'ancestor':cat_id, 'name':item_name}
+        deleteItem(q_item)
+
+        self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
+
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
         
@@ -393,10 +409,17 @@ class Dispatcher(webapp2.RequestHandler):
                     owner_id = self.request.get('owner')
                     cat_id = cat_key(owner_id, cat_name)
                     query = {'ancestor' : cat_id}
-                    list = searchItem(query).run()
-                    template_values['items'] = list
+                    list = searchItem(query)
+                    template_values['items'] = list.run()
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
+                    
+                    a = {}
+                    i = 0
+                    for item in list:
+                        a[item.name] = i
+                        i = i + 1
+                    template_values['id'] = a
                 
                 elif self.request.get('item_name'):
                     cat_name = self.request.get('parent')
@@ -433,26 +456,30 @@ class Dispatcher(webapp2.RequestHandler):
                         skip_item = self.request.get('skip_item')
                         query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
                         item1 = searchItem(query).get()
-                        self.response.out.write(item1)
+                        #self.response.out.write(item1)
                     
                         item2 = pickRandom(cat_id)
                         while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                             item2 = pickRandom(cat_id)
             
                     elif self.request.get('prev1'):
-                        prev1 = self.request.get('prev1')
-                        prev2 = self.request.get('prev2')
+                        prev1 = self.request.get('prev1')                        
+                        prev2 = self.request.get('prev2')                        
                         template_values['prev1'] = prev1
                         template_values['prev2'] = prev2
+                        #item1 = 'a'
+                        #item2 = 'b'
                         
                         item1 = pickRandom(cat_id)
+                        
                         while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
                             item1 = pickRandom(cat_id)
                         
                         item2 = pickRandom(cat_id)
+                        
                         while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
                             item2 = pickRandom(cat_id)                                               
-                                                  
+                                                 
                     else:
                         item1 = pickRandom(cat_id)
                         while not item1:
@@ -461,14 +488,15 @@ class Dispatcher(webapp2.RequestHandler):
                         item2 = pickRandom(cat_id)
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
-            
+                    
                     if not_skip == 1:
                         template_values['vote'] = [item1, item2]
                     else:
                         template_values['vote'] = [item2, item1]
-        
+                    
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
+                    
 
                 elif self.request.get('stats_cat'):
                     owner_id = self.request.get('owner')
@@ -503,4 +531,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem)], debug=True)
