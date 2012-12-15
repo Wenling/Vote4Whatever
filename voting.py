@@ -210,9 +210,13 @@ class AddCat(webapp2.RequestHandler):
         if users.get_current_user():
             user_id = users.get_current_user().user_id()
             user_name = users.get_current_user().nickname()
-            cat = insertCat(user_id, user_name, cat_name)
-            #self.response.out.write(cat_id)
-            self.redirect('/?' + urllib.urlencode({'cat_name': cat.name}) + '&' + urllib.urlencode({'owner':users.get_current_user().user_id()}))
+            query = {'ancestor':user_key(user_id), 'name':cat_name}
+            if searchCat(query).count() == 0:
+                cat = insertCat(user_id, user_name, cat_name)
+                #self.response.out.write(cat_id)
+                self.redirect('/?add=success&cat_name=' + cat_name + '&owner=' + user_id)
+            else:
+                self.redirect('/?add=fail&category=a')
 
 class AddItem(webapp2.RequestHandler):
     def post(self):
@@ -225,10 +229,15 @@ class AddItem(webapp2.RequestHandler):
             cat_id = cat_key(owner_id, cat_name)
             item_name = self.request.get('item_name')
             pic_dir = self.request.get('picture')
-            item = insertItem(cat_id, item_name, pic_dir)
-        #self.response.out.write(item.name)
-        self.redirect('/?' + urllib.urlencode({'cat_name': cat_name}) + '&' + urllib.urlencode({'owner':users.get_current_user().user_id()}))
-#self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
+            query = {'ancestor':cat_id, 'name':item_name}
+            if searchItem(query).count() == 0:
+                item = insertItem(cat_id, item_name, pic_dir)
+                #self.response.out.write(item.name)
+                    
+                self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
+                #self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
+            else:
+                self.redirect('/?add_fail=true&cat_name=' + cat_name + '&owner=' + owner_id)
 
 class VoteItem(webapp2.RequestHandler):
     def get(self):
@@ -271,16 +280,48 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
             user_name = users.get_current_user().nickname()
             
             name = getText(cat_name.childNodes)
-            cat = insertCat(user_id, user_name, name)
+            
             items = dom.getElementsByTagName("ITEM")
     
-            for item in items:
+            query = {'ancestor':user_key(user_id), 'name':name}
+            if searchCat(query).count() == 0:
+                cat = insertCat(user_id, user_name, name)
                 cat_id = cat_key(user_id, name)
-                item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
-                #haven't save images
-                insertItem(cat_id, item_name,None)
-            self.redirect('/?category=a')
-        
+                for item in items:                    
+                    item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                    #haven't save images
+                    insertItem(cat_id, item_name,None)
+                self.redirect('/?upload=success&category=a')
+            
+            else:
+                modified = {}
+                cat_id = cat_key(user_id, name)
+                for item in items:                    
+                    item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                    query = {'ancestor':cat_id, 'name':item_name}
+                    if searchItem(query).count() == 0:
+                        #haven't save images
+                        insertItem(cat_id, item_name,None)
+                        modified[item_name] = 1
+                    else:
+                        modified[item_name] = 0
+
+                query = {'ancestor':cat_id}
+                list = searchItem(query)
+                for l in list:
+                    if not l.name in modified:
+                        item_id = item_key(user_id+'/'+name, l.name)
+                        q_vote = {'ancestor':item_id}
+                        deleteVote(q_vote)
+                        q_vote = {'unvoted_item': l}
+                        deleteVote(q_vote)
+                        q_comment = {'ancestor':item_id}
+                        deleteComment(q_comment)
+                        q_item = {'ancestor':cat_id, 'name':l.name}
+                        deleteItem(q_item)
+                            
+                self.redirect('/?upload=success&category=a')
+
                 #except:
 #self.redirect('/?upload_failure=true&categories=a')
 
@@ -401,6 +442,10 @@ class Dispatcher(webapp2.RequestHandler):
                         upload_url = blobstore.create_upload_url('/import')
                         template_values['import'] = upload_url
                         template_values['view'] = False
+                        if self.request.get('upload'):
+                            template_values['upload'] = self.request.get('upload')
+                        if self.request.get('add'):
+                            template_values['add'] = self.request.get('add')
                 
                     template_values['categories'] = list
                 
@@ -420,6 +465,9 @@ class Dispatcher(webapp2.RequestHandler):
                         a[item.name] = i
                         i = i + 1
                     template_values['id'] = a
+                    
+                    if self.request.get('add_fail'):
+                        template_values['add_fail'] = True
                 
                 elif self.request.get('item_name'):
                     cat_name = self.request.get('parent')

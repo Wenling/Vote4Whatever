@@ -110,9 +110,22 @@
                     </ul>
                     
                     <div class="tab-content">
-                        {% if upload_failure %}
+                        {% if upload=='fail' %}
                         <div class="alert alert-error">
                             Upload failed..
+                        </div>
+                        {% elif upload=='success' %}
+                        <div class="alert alert-success">
+                            Upload succeeded!
+                        </div>'
+                        {% endif %}
+                        {% if add=='fail' %}
+                        <div class="alert alert-error">
+                            You have added this one before.
+                        </div>
+                        {% elif add=='success' %}
+                        <div class="alert alert-success">
+                            Successfully added!
                         </div>
                         {% endif %}
                         <div class="tab-pane active" id="addCat">
@@ -172,6 +185,11 @@
                 </div>
                 
                 {% if owner == user_id %}
+                {% if add_fail %}
+                <div class="alert alert-error">
+                    You have added this one before.
+                </div>
+                {% endif %}
                 <div class="span3">
                     <form action="/addItem" method="post" class="bs-docs-example ">
                         <legend>Add a new one:</legend>
