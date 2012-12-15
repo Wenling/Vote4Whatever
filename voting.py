@@ -115,15 +115,29 @@ def insertVote(voter, voted_item_id, favored):
 def searchVote(query):
     q = Vote.all()
     for k in query:
-        q.filter(k, query[k])
-    list = q.run()
-    return list
+        if k=='ancestor':
+            q.ancestor(query[k])
+        else:
+            q.filter(k, query[k])
+    return q
 
 #remove all votes given the item
+@db.transactional
+def removeVote(query):
+    list = searchVote(query)
+    db.delete(list)    
 
 #remove the item give id
+@db.transactional
+def removeItem(query):
+    list = searchItem(query)
+    db.delete(list)
 
 #remove the category given category id
+@db.transactional
+def removeCategory(query):
+    list = searchCat(query)
+    db.delete(list)
 
 #insert comment given item id
 def insertComment(commenter, commenter_id, item_id, content):
@@ -145,7 +159,7 @@ def searchComment(query):
 def pickRandom(cat_id):
     r = random.random()
     q = Item.all()
-    q.filter('rand >=', r).order('rand')
+    q.ancestor(cat_id).filter('rand >=', r).order('rand')
     return q.get()
 
 #count all votes under the item
@@ -165,7 +179,7 @@ def listResult(owner_id, cat_name, user_id):
     not_voted = {}
     cat_id = cat_key(owner_id, cat_name)
     query = {'ancestor':cat_id}
-    items = searchItem(query)
+    items = searchItem(query).run()
     for item in items:
         item_id = item_key(owner_id + '/' + cat_name, item.name)
         q_favored = {'ancestor' : item_id, 'favored' : True}
@@ -379,7 +393,7 @@ class Dispatcher(webapp2.RequestHandler):
                     owner_id = self.request.get('owner')
                     cat_id = cat_key(owner_id, cat_name)
                     query = {'ancestor' : cat_id}
-                    list = searchItem(query)
+                    list = searchItem(query).run()
                     template_values['items'] = list
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
@@ -418,7 +432,7 @@ class Dispatcher(webapp2.RequestHandler):
                         not_skip = self.request.get('not_skip')
                         skip_item = self.request.get('skip_item')
                         query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
-                        item1 = searchItem(query).next()
+                        item1 = searchItem(query).get()
                         self.response.out.write(item1)
                     
                         item2 = pickRandom(cat_id)
