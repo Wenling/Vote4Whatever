@@ -122,25 +122,22 @@ def searchVote(query):
     return q
 
 #remove all votes given the item
-@db.transactional
 def deleteVote(query):
     list = searchVote(query)
-    db.delete(list)
+    if list.count() > 0:
+        db.delete(list)
 
 #remove all comments given the item
-@db.transactional
 def deleteComment(query):
     list = searchComment(query)
     db.delete(list)
 
 #remove the item give id
-@db.transactional
 def deleteItem(query):
     list = searchItem(query)
     db.delete(list)
 
 #remove the category given category id
-@db.transactional
 def deleteCategory(query):
     list = searchCat(query)
     db.delete(list)
@@ -230,8 +227,8 @@ class AddItem(webapp2.RequestHandler):
             pic_dir = self.request.get('picture')
             item = insertItem(cat_id, item_name, pic_dir)
         #self.response.out.write(item.name)
-        
-        self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
+        self.redirect('/?' + urllib.urlencode({'cat_name': cat_name}) + '&' + urllib.urlencode({'owner':users.get_current_user().user_id()}))
+#self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
 
 class VoteItem(webapp2.RequestHandler):
     def get(self):
@@ -259,7 +256,7 @@ class VoteItem(webapp2.RequestHandler):
             #self.response.out.write(item)
 #self.response.out.write(skip_item)
 
-            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&item=' + item + '&skip_item=' + skip_item + '&vote_cat=' + cat_name + '&' + urllib.urlencode({'owner':user_id}))
+            self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&item=' + item + '&skip_item=' + skip_item + '&vote_cat=' + cat_name + '&owner=' + owner_id)
 
 class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
@@ -351,9 +348,12 @@ class AddComment(webapp2.RequestHandler):
         #self.response.out.write(item_name)
         content = self.request.get('content')
         item_id = item_key(owner_id+'/'+cat_name, item_name)
-        insertComment(user_name, user_id, item_id, content)
-        
-        self.redirect('/?item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
+        query = {'ancestor':item_id, 'commenter_id':user_id}
+        if searchComment(query).count() == 0:
+            insertComment(user_name, user_id, item_id, content)        
+            self.redirect('/?item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
+        else:
+            self.redirect('/?fail=true&item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
 
 class RemoveItem(webapp2.RequestHandler):
     def post(self):
@@ -437,7 +437,9 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
                     template_values['comments'] = comments
-                        
+                    if self.request.get('fail'):
+                        template_values['fail'] = True
+                
                 elif self.request.get('vote_cat')=='all':
                     query = {}
                     list = searchCat(query)
@@ -489,11 +491,10 @@ class Dispatcher(webapp2.RequestHandler):
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
                     
-                    if not_skip == 1:
+                    if not_skip == '1':
                         template_values['vote'] = [item1, item2]
                     else:
                         template_values['vote'] = [item2, item1]
-                    
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
                     

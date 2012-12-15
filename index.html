@@ -228,7 +228,7 @@
                 </div>
             </div>
             {% elif item %}
-            <div class="row">
+            <div class="row">                
                 <div class="span4">
                     <ul class="thumbnails">
                         <li class="span4"  style="background-color:#f8f8f8;">
@@ -243,6 +243,7 @@
                     </ul>                    
                 </div>
                 <div class="span5">
+                    
                     <!-- show comments here -->
                     {% if comments %}
                     <table class="table table-hover" id="Item">
@@ -253,6 +254,11 @@
                         {% endif %}
                         {% endfor %}
                     </table>
+                    {% endif %}
+                    {% if fail %}
+                    <div class="alert alert-error">
+                        You are only allowed to make one comment on every item.
+                    </div>
                     {% endif %}
                     <b>Leave your thoughts here:</b>
                     <form action="/addComment" method="post">
