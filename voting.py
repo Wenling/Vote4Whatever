@@ -18,6 +18,7 @@ import operator
 import xml.dom.minidom
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment
+import pickle
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -359,8 +360,8 @@ class ExportHandler(webapp2.RequestHandler):
             name.text = item.name
             create_time = SubElement(i, 'CREATE_TIME')
             create_time.text = item.create_time.ctime()
-            #pic = SubElement(i, 'PICTURE')
-            #pic.text = blobstore.BlobInfo.get(item.picture).dump()
+            pic = SubElement(i, 'PICTURE')
+            pic.text = pickle.dumps(item.picture)
     
         data = prettify(top)
     
