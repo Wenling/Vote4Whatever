@@ -31,7 +31,7 @@
                 <div class="row">
                 <div class="span4 offset7">
                     <form class="form-search" action="/search" method="get" style="margin:0 0">
-                        <input type="text" class="input-medium search-query">
+                        <input type="text" class="input-medium search-query" name="query">
                         <button type="submit" class="btn">Search</button>
                     </form>
                 </div>
@@ -372,6 +372,84 @@
                 </table>
             </div>
         </div>
+        {% elif query_cat or query_item %}
+                <div class="row">
+                    <div class="span3">
+                        Found {{count_cat}} Categories, {{count_item}} Items.
+                    </div>
+                    <div class="span9">
+                    <ul class="nav nav-tabs" id="myTab">
+                        <li class="active"><a href="#Cat">Category</a></li>
+                        <li><a href="#Item">Item</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="Cat">
+                            <table class="table table-hover" id="Categories">
+                                <thead>
+                                    <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                                </thead>
+                                {% for cat in query_cat %}
+                                {% if cat.name %}
+                                <tr><td>
+                                    {% if view==False %}
+                                    <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                                    {% else %}
+                                    <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                                    {% endif %}
+                                </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                                {% endif %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                        <div class="tab-pane" id="Item">
+                            <table class="table table-hover" id="Items">
+                                <thead>
+                                    {% if user_id == owner %}
+                                    <th></th>
+                                    {% endif %}
+                                    <th></th><th>Image</th><th>Name</th><th>Create Time</th>
+                                </thead>
+                                <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                                {% for item in query_item %}
+                                {% if item.name %}
+                                <tr><td>
+                                    {% if user_id == owner %}
+                                    <a href="#{{id[item.name]}}" data-toggle="modal">Remove</a></td><td>
+                                        <!-- Modal -->
+                                        <div id="{{id[item.name]}}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                            <div class="modal-body">
+                                                <div class="alert">
+                                                    <p>Are you sure to delete <b>{{ item.name }}</b>?</p>
+                                                </div>
+                                                
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form action="/removeItem" method="post">
+                                                    <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                                                        <input type="hidden" name = 'owner' value="{{ owner }}">
+                                                            <input type="hidden" name = 'item_name' value="{{ item.name }}">
+                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">No</button>
+                                                                <input type="submit" value="Yes" class="btn btn-primary">
+                                                                    </form>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>
+                                    </td><td><img src="/img?img_id={{key[item.name]}}"></img></td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                                {% endif %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        $('#myTab a').click(function (e) {
+                                            e.preventDefault();
+                                            $(this).tab('show');
+                                            })
+                        </script>
+                    </div>
+                </div>
         {% else %}
         <div class="row">
             <div class="span6 offset3">

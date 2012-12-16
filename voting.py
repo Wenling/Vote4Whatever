@@ -2,6 +2,10 @@ from __future__ import with_statement
 import cgi
 import datetime
 import urllib
+import os
+import random
+import operator
+import pickle
 import webapp2
 
 from google.appengine.ext import db
@@ -10,15 +14,12 @@ from google.appengine.api import images
 from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import files
+from google.appengine.ext.db import stats
 
 import jinja2
-import os
-import random
-import operator
 import xml.dom.minidom
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment
-import pickle
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -427,6 +428,12 @@ class RemoveItem(webapp2.RequestHandler):
 
         self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
 
+class Search(webapp2.RequestHandler):
+    def get(self):
+        q = self.request.get('query')
+        self.redirect('/?query=' + q)
+       
+
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
         
@@ -584,6 +591,28 @@ class Dispatcher(webapp2.RequestHandler):
     
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
+    
+                elif self.request.get('query'):
+                    query_name = self.request.get('query')
+                    q_cat = {'name':query_name}
+                    cat_list = searchCat(q_cat)
+                    q_item = {'name': query_name}
+                    item_list = searchItem(q_item)
+                    
+                    template_values['query_cat'] = cat_list
+                    template_values['query_item'] = item_list
+                    template_values['count_cat'] = cat_list.count()
+                    template_values['count_item'] = item_list.count()
+    
+                    a = {}
+                    b = {}
+                    i = 0
+                    for item in item_list:
+                        a[item.name] = i
+                        i = i + 1
+                        b[item.name] = item.key()
+                    template_values['id'] = a
+                    template_values['key'] = b
 
 
         else:
@@ -599,4 +628,4 @@ class Dispatcher(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
 
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image)], debug=True)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search)], debug=True)
