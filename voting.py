@@ -15,6 +15,7 @@ from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import files
 from google.appengine.ext.db import stats
+from google.appengine.api import memcache
 
 import jinja2
 import xml.dom.minidom
@@ -438,31 +439,26 @@ class RemoveItem(webapp2.RequestHandler):
 
 class Search(webapp2.RequestHandler):
     def get(self):
-        template_values = {}
         q = self.request.get('query')
-        query_name = self.request.get('query')
-        q_cat = {'name':query_name}
-        cat_list = searchCat(q_cat)
-        q_item = {'name': query_name}
-        item_list = searchItem(q_item)
-            
-        template_values['query_cat'] = cat_list
-        template_values['query_item'] = item_list
-        template_values['count_cat'] = cat_list.count()
-        template_values['count_item'] = item_list.count()
-            
-        a = {}
-        b = {}
-        i = 0
-        for item in item_list:
-            a[item.name] = i
-            i = i + 1
-            b[item.name] = item.key()
-        template_values['id'] = a
-        template_values['key'] = b
-        template = jinja_environment.get_template('index.html')
-        self.response.out.write(template.render(template_values))
+        self.redirect('/?query=' + q)
 
+class BaseHandler(webapp2.RequestHandler):
+    def dispatch(self):
+        # Get a session store for this request.
+        self.session_store = sessions.get_store(request=self.request)
+        
+        try:
+            # Dispatch the request.
+            webapp2.RequestHandler.dispatch(self)
+        finally:
+            # Save all sessions.
+            self.session_store.save_sessions(self.response)
+    
+    @webapp2.cached_property
+    def session(self):
+        # Returns a session using the default cookie key.
+        return self.session_store.get_session()
+       
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -477,7 +473,13 @@ class Dispatcher(webapp2.RequestHandler):
             
             template_values['username'] = username
             template_values['user_id'] = user_id
-            
+            if not memcache.get('username'):
+                memcache.add('username', username, 3600)
+                memcache.add('user_id', user_id, 3600)
+            else:
+                memcache.get('username')
+                memcache.get('user_id')    
+                    
             if self.request.arguments():
                 if self.request.get('category'):
                     if self.request.get('category')=='all':
@@ -562,38 +564,46 @@ class Dispatcher(webapp2.RequestHandler):
                     not_skip = 0
                     query={'ancestor':cat_id}
                     count = searchItem(query).count()
-                    if count < 2:                        
+                    if count <= 2:
                         self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
                     
                     elif self.request.get('not_skip'):
-                        not_skip = self.request.get('not_skip')
-                        skip_item = self.request.get('skip_item')
-                        query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
-                        item1 = searchItem(query).get()
-                        #self.response.out.write(item1)
+                        if count > 2:
+                            not_skip = self.request.get('not_skip')
+                            skip_item = self.request.get('skip_item')
+                            query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
+                            item1 = searchItem(query).get()
+                            #self.response.out.write(item1)
                 
-                        item2 = pickRandom(cat_id)
-                        while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                             item2 = pickRandom(cat_id)
+                            while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
+                                item2 = pickRandom(cat_id)
+            
+                        else:
+                            self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
             
                     elif self.request.get('prev1'):
-                        prev1 = self.request.get('prev1')                        
-                        prev2 = self.request.get('prev2')                        
-                        template_values['prev1'] = prev1
-                        template_values['prev2'] = prev2
-                        #item1 = 'a'
-                        #item2 = 'b'
+                        if count > 2:
+                            prev1 = self.request.get('prev1')                        
+                            prev2 = self.request.get('prev2')                        
+                            template_values['prev1'] = prev1
+                            template_values['prev2'] = prev2
+                            #item1 = 'a'
+                            #item2 = 'b'
                         
-                        item1 = pickRandom(cat_id)
-                        
-                        while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
                             item1 = pickRandom(cat_id)
                         
-                        item2 = pickRandom(cat_id)
+                            while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
+                                item1 = pickRandom(cat_id)
                         
-                        while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
-                            item2 = pickRandom(cat_id)                                               
-                                                 
+                            item2 = pickRandom(cat_id)
+                        
+                            while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
+                                item2 = pickRandom(cat_id)
+
+                        else:
+                            self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
+        
                     else:
                         item1 = pickRandom(cat_id)
                         item2 = pickRandom(cat_id)
@@ -604,9 +614,8 @@ class Dispatcher(webapp2.RequestHandler):
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
                     
-                    if count >= 2:
-                        if count == 2:
-                            template_values['not_enough'] = 2
+                    if count > 2:
+                        
                         if not_skip == '1':
                             template_values['vote'] = [item1, item2]
                             template_values['vote_key'] = [item1.key(), item2.key()]
@@ -636,7 +645,27 @@ class Dispatcher(webapp2.RequestHandler):
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
     
-                
+                elif self.request.get('query'):
+                    query_name = self.request.get('query')
+                    q_cat = {'name':query_name}
+                    cat_list = searchCat(q_cat)
+                    q_item = {'name': query_name}
+                    item_list = searchItem(q_item)
+                    
+                    template_values['query_cat'] = cat_list
+                    template_values['query_item'] = item_list
+                    template_values['count_cat'] = cat_list.count()
+                    template_values['count_item'] = item_list.count()
+    
+                    a = {}
+                    b = {}
+                    i = 0
+                    for item in item_list:
+                        a[item.name] = i
+                        i = i + 1
+                        b[item.name] = item.key()
+                    template_values['id'] = a
+                    template_values['key'] = b
         
             else:
                 template_values['home'] = True
@@ -653,5 +682,8 @@ class Dispatcher(webapp2.RequestHandler):
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
 
-
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search)], debug=True)
+config = {}
+config['webapp2_extras.sessions'] = {
+    'secret_key': 'my-super-secret-key',
+}
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search)], debug=True, config=config)
