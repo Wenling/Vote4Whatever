@@ -215,13 +215,7 @@ class AddCat(webapp2.RequestHandler):
             user_id = users.get_current_user().user_id()
             user_name = users.get_current_user().nickname()
             query = {'ancestor':user_key(user_id), 'name':cat_name}
-            if memcache.get('cat_count'):
-                count = memcache.get('cat_count')
-            else:
-                count = searchCat(query).count()
-                memcache.add('cat_count', count)
-            
-            if count == 0:
+            if searchCat(query).count() == 0:
                 cat = insertCat(user_id, user_name, cat_name, expiration_time)
                 #self.response.out.write(cat_id)
                 self.redirect('/?add=success&cat_name=' + cat_name + '&owner=' + user_id)
@@ -494,18 +488,13 @@ class Dispatcher(webapp2.RequestHandler):
                             list = memcache.get('cat_all')
                         else:
                             list = searchCat(query)
-                            memcache.add('cat_all', list)
+                            memcache.add('cat_all', list, 60)
                         
                         template_values['view'] = True
     
                     else:
                         query = { 'ancestor' :user_key(user_id) }
-                        if memcache.get('cat_'+user_id):
-                            list = memcache.get('cat_'+user_id)
-                        else:
-                            list = searchCat(query)
-                            memcache.add('cat_all', list)
-                
+                        list = searchCat(query)
                         upload_url = blobstore.create_upload_url('/import')
                         template_values['import'] = upload_url
                         template_values['view'] = False
@@ -566,7 +555,7 @@ class Dispatcher(webapp2.RequestHandler):
                         list = memcache.get('cat_all')
                     else:
                         list = searchCat(query)
-                        memcache.add('cat_all', list)
+                        memcache.add('cat_all', list, 60)
                             
                     template_values['vote_cat'] = list
                     template_values['now'] = datetime.datetime.today()
@@ -585,7 +574,11 @@ class Dispatcher(webapp2.RequestHandler):
                     
                     not_skip = 0
                     query={'ancestor':cat_id}
-                    count = searchItem(query).count()
+                    if memcache.get('count_'+owner_id+'_'+vote_cat):
+                        count = memcache.get('count_'+owner_id+'_'+vote_cat)
+                    else:
+                        count = searchItem(query).count()
+                        memcache.add('count_'+owner_id+'_'+vote_cat, count, 60)
                     if count <= 2:
                         self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
                     
@@ -600,9 +593,6 @@ class Dispatcher(webapp2.RequestHandler):
                             item2 = pickRandom(cat_id)
                             while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                                 item2 = pickRandom(cat_id)
-            
-                        else:
-                            self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
             
                     elif self.request.get('prev1'):
                         if count > 2:
@@ -622,9 +612,6 @@ class Dispatcher(webapp2.RequestHandler):
                         
                             while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
                                 item2 = pickRandom(cat_id)
-
-                        else:
-                            self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
         
                     else:
                         item1 = pickRandom(cat_id)
@@ -660,7 +647,11 @@ class Dispatcher(webapp2.RequestHandler):
     
                 elif self.request.get('stats')=='all':
                     query = {}
-                    list = searchCat(query)
+                    if memcache.get('cat_all'):
+                        list = memcache.get('cat_all')
+                    else:
+                        list = searchCat(query)
+                        memcache.add('cat_all', list, 60)
                     
                     template_values['stats_cat'] = list.run()
     

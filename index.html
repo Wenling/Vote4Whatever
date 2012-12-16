@@ -277,7 +277,10 @@
                 {% endif %}
                     <table class="table table-hover" id="Items">
                         <thead>
-                            <th></th><th></th><th>Image</th><th>Name</th><th>Create Time</th>
+                            {% if user_id == owner %}
+                            <th></th>
+                            {% endif %}
+                            <th></th><th>Image</th><th>Name</th><th>Create Time</th>
                         </thead>
                         <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                         {% for item in items %}
