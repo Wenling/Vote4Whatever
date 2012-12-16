@@ -215,7 +215,13 @@ class AddCat(webapp2.RequestHandler):
             user_id = users.get_current_user().user_id()
             user_name = users.get_current_user().nickname()
             query = {'ancestor':user_key(user_id), 'name':cat_name}
-            if searchCat(query).count() == 0:
+            if memcache.get('cat_count'):
+                count = memcache.get('cat_count')
+            else:
+                count = searchCat(query).count()
+                memcache.add('cat_count', count)
+            
+            if count == 0:
                 cat = insertCat(user_id, user_name, cat_name, expiration_time)
                 #self.response.out.write(cat_id)
                 self.redirect('/?add=success&cat_name=' + cat_name + '&owner=' + user_id)
@@ -484,12 +490,22 @@ class Dispatcher(webapp2.RequestHandler):
                 if self.request.get('category'):
                     if self.request.get('category')=='all':
                         query = {}
-                        list = searchCat(query)
+                        if memcache.get('cat_all'):
+                            list = memcache.get('cat_all')
+                        else:
+                            list = searchCat(query)
+                            memcache.add('cat_all', list)
+                        
                         template_values['view'] = True
     
                     else:
                         query = { 'ancestor' :user_key(user_id) }
-                        list = searchCat(query)
+                        if memcache.get('cat_'+user_id):
+                            list = memcache.get('cat_'+user_id)
+                        else:
+                            list = searchCat(query)
+                            memcache.add('cat_all', list)
+                
                         upload_url = blobstore.create_upload_url('/import')
                         template_values['import'] = upload_url
                         template_values['view'] = False
@@ -546,7 +562,12 @@ class Dispatcher(webapp2.RequestHandler):
                 
                 elif self.request.get('vote_cat')=='all':
                     query = {}
-                    list = searchCat(query)
+                    if memcache.get('cat_all'):
+                        list = memcache.get('cat_all')
+                    else:
+                        list = searchCat(query)
+                        memcache.add('cat_all', list)
+                            
                     template_values['vote_cat'] = list
                     template_values['now'] = datetime.datetime.today()
                     if self.request.get('not_enough'):
