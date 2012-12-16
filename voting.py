@@ -298,7 +298,7 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
     
             query = {'ancestor':user_key(user_id), 'name':name}
             if searchCat(query).count() == 0:
-                cat = insertCat(user_id, user_name, name)
+                cat = insertCat(user_id, user_name, name, None)
                 cat_id = cat_key(user_id, name)
                 for item in items:                    
                     item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
@@ -613,7 +613,9 @@ class Dispatcher(webapp2.RequestHandler):
                         b[item.name] = item.key()
                     template_values['id'] = a
                     template_values['key'] = b
-
+        
+            else:
+                template_values['home'] = True
 
         else:
             url = users.create_login_url(self.request.uri)

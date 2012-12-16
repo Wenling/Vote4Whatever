@@ -29,7 +29,7 @@
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
                 </ul>
                 <div class="row">
-                <div class="span4 offset7">
+                <div class="span4 offset6">
                     <form class="form-search" action="/search" method="get" style="margin:0 0">
                         <input type="text" class="input-medium search-query" name="query">
                         <button type="submit" class="btn">Search</button>
@@ -449,6 +449,22 @@
                                             })
                         </script>
                     </div>
+                </div>
+                {% elif home %}
+                <div class="row">
+                    <h3>Requirements</h3>
+                    <p>
+                    Given these requirements you will likely have to rewrite parts of your code (for instance, App Engine does not allow shell scripts to be invoked from Python).  In terms of new features, you should implement the following:</p>
+                    <p>The system should handle multiple users and associate categories/items with a logged in user.</p>
+                    <p>Users should be able to create and edit a category with items via the web.  Anyone can vote on any category, but only the creator of a category can edit it.</p>
+                    <p>Users should be able to view any category via the web, not just the two fixed ones in assignment 4.</p>
+                    <p>Users should be able to export and import a category with XML.  Example format is here.  Exporting is possible for any user's category.  Importing will create a new category (you must make sure an existing category with the same name does not already exist -- or, you may support this by ensuring that the author can only replace their own categories).</p>
+                    <p>In addition, you should implement one of the following advanced features.  It is up to you which one.</p>
+                    <p>Allow a user to change the items in a category.  When this happens, the results for that item must be removed.  Also, imports must be supported that replace a previous import (meaning items that do not change are preserved, items that are removed have results deleted).</p>
+                    <p>Support user comments about an item.  A user should not be able to comment on an item more than once.  The comments should be shown in the results view by each item.</p>
+                    <p>Search capability to find items and categories that match supplied keywords.  For example a search for "Apple" could match "Apple MacBook" in the category "Laptops" as well as "Apple" in the category "Fruits".</p>
+                    <p>Support for expiration time in categories, after which point voting is no longer possible but viewing results is.  Expiration times should be able to be set in the category editor.</p>
+                    <p>Support images associated with each item.  They should be displayed at vote time. In the editor, images must be uploaded into your data store (do not use links), and the XML format for both import and export must handle serializing images.</p>
                 </div>
         {% else %}
         <div class="row">
