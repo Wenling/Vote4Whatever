@@ -39,7 +39,6 @@ class Category(db.Model):
 class Item(db.Model):
     #category = db.Key()
     name = db.StringProperty()
-    rand = db.FloatProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
     picture = db.BlobProperty(default='img/ny.jpg')
 
@@ -88,9 +87,9 @@ def searchCat(query):
     return q
 
 #insert a new item, will check for the user is valid to add item in that category
-def insertItem(cat_id, item_name, pic_dir):
+def insertItem(cat_id, item_name, pic_dir, key_name):
     randnum = random.random()
-    item = Item(parent=cat_id, key_name=item_name, name=item_name, rand=randnum)
+    item = Item(parent=cat_id, key_name=key_name, name=item_name, rand=randnum)
     if pic_dir:
         item.picture = db.Blob(pic_dir)
     item.put()
@@ -163,10 +162,10 @@ def searchComment(query):
 
 #get random items under the category
 def pickRandom(cat_id):
-    r = random.random()
-    q = Item.all()
-    q.ancestor(cat_id).filter('rand >=', r).order('rand')
-    return q.get()
+    num = Item.all().ancestor(cat_id).count()
+    rand = random.randint(0, num-1)
+    item = Item.get_by_key_name(str(rand), parent=cat_id)
+    return item, rand
 
 #list all voting results under the category
 def listResult(owner_id, cat_name, user_id):
@@ -235,7 +234,9 @@ class AddItem(webapp2.RequestHandler):
             pic_dir = self.request.get('picture')
             query = {'ancestor':cat_id, 'name':item_name}
             if searchItem(query).count() == 0:
-                item = insertItem(cat_id, item_name, pic_dir)
+                query = {'ancestor': cat_id}
+                num = searchItem(query).count()
+                item = insertItem(cat_id, item_name, pic_dir, num)
                 #self.response.out.write(item.name)               
                     
                 self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
@@ -298,12 +299,15 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
     
             query = {'ancestor':user_key(user_id), 'name':name}
             if searchCat(query).count() == 0:
-                cat = insertCat(user_id, user_name, name, None)
+                d = datetime.timedelta(days=+1)
+                expiration_time = (datetime.datetime.now()+d).strftime("%m/%d/%Y")
+                cat = insertCat(user_id, user_name, name, expiration_time)
                 cat_id = cat_key(user_id, name)
                 for item in items:                    
                     item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
-                    #haven't save images
-                    insertItem(cat_id, item_name,None)
+                    query = {'ancestor': cat_id}
+                    num = searchItem(query).count()
+                    insertItem(cat_id, item_name, None, num)
                 self.redirect('/?upload=success&category=a')
             
             else:
@@ -313,8 +317,9 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
                     item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
                     query = {'ancestor':cat_id, 'name':item_name}
                     if searchItem(query).count() == 0:
-                        #haven't save images
-                        insertItem(cat_id, item_name,None)
+                        query = {'ancestor': cat_id}
+                        num = searchItem(query).count()
+                        insertItem(cat_id, item_name, None, num)
                         modified[item_name] = 1
                     else:
                         modified[item_name] = 0
@@ -555,14 +560,15 @@ class Dispatcher(webapp2.RequestHandler):
                             item2 = pickRandom(cat_id)                                               
                                                  
                     else:
-                        item1 = pickRandom(cat_id)
+                        item1,r1 = pickRandom(cat_id)
+                        item2,r2 = pickRandom(cat_id)
+                        
                         while not item1:
                             item1 = pickRandom(cat_id)
-                            
-                        item2 = pickRandom(cat_id)
+                                                    
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
-                    
+                        
                     if not_skip == '1':
                         template_values['vote'] = [item1, item2]
                         template_values['vote_key'] = [item1.key(), item2.key()]
