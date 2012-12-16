@@ -18,8 +18,9 @@
                     <li class="active"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>{{ username }}</b><b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li><a tabindex="-1" href="/?category=a">View My Categories</a></li>
-                            <li class="divider"></li>
                             <li><a tabindex="-1" href="/?category=all">Explore All Categories</a></li>
+                            <li class="divider"></li>
+                            <li><a tabindex="-1" href="/">Home</a></li>
                         </ul>
                     </li>
                     {% if username %}
@@ -47,6 +48,13 @@
             {% if vote_cat %}
             <div class="row">
                 <div class="span9">
+                    {% if not_enough %}
+                    <div class="alert alert-error">
+                        <center><p>There is not enough item you can vote<p>
+                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                        </center>
+                    </div>
+                    {% else %}
                     <table class="table table-hover" id="Vote_Categories">
                         <thead>
                             <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
@@ -64,6 +72,7 @@
                         {% endif %}
                         {% endfor %}
                     </table>
+                    {% endif %}
                 </div>
             </div>
             {% elif vote %}
@@ -87,7 +96,11 @@
                                             <br/>
                                             <center>
                                                 <a href="/vote?item_name={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[1].name}}" class="btn btn-primary">Vote</a>
+                                                {% if not_enough %}
+                                                    <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                {% else %}
                                                 <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn">Skip</a>
+                                                    {% endif %}
                                             </center>
                                         </div>
                                         </div>
@@ -100,7 +113,11 @@
                                             <br/>
                                             <center>
                                                 <a href="/vote?item_name={{vote[1].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[0].name}}" class="btn btn-primary">Vote</a>
+                                                {% if not_enough %}
+                                                    <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                {% else %}
                                                 <a href="/vote?not_skip=1&item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&skip_item={{vote[1].name}}" class="btn">Skip</a>
+                                                {% endif %}
                                             </center>
                                         </div>
                                         </div>
@@ -278,7 +295,7 @@
                                 </div>
                             {% endif %}
                             <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>                            
-                        </td><td><img src="/img?img_id={{key[item.name]}}"></img></td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                        </td><td><img src="/img?img_id={{key[item.name]}}" style="width: 250px; height: 300px;"></img></td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
                         {% endif %}
                         {% endfor %}
                     </table>
@@ -290,7 +307,7 @@
                     <ul class="thumbnails">
                         <li class="span4"  style="background-color:#f8f8f8;">
                             <div class="thumbnail">
-                                <img src="/images/ny.jpg" data-src="holder.js/300x300" alt="" style="width: 250px; height: 300px;">
+                                <img src="/img?img_id={{item_key}}" data-src="holder.js/300x300" alt="" style="width: 250px; height: 300px;">
                                 <center>
                                     <h3>{{item.name}}</h3>
                                     <p>{{item.create_time}}</p>

@@ -165,7 +165,7 @@ def pickRandom(cat_id):
     num = Item.all().ancestor(cat_id).count()
     rand = random.randint(0, num-1)
     item = Item.get_by_key_name(str(rand), parent=cat_id)
-    return item, rand
+    return item
 
 #list all voting results under the category
 def listResult(owner_id, cat_name, user_id):
@@ -236,7 +236,7 @@ class AddItem(webapp2.RequestHandler):
             if searchItem(query).count() == 0:
                 query = {'ancestor': cat_id}
                 num = searchItem(query).count()
-                item = insertItem(cat_id, item_name, pic_dir, num)
+                item = insertItem(cat_id, item_name, pic_dir, str(num))
                 #self.response.out.write(item.name)               
                     
                 self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
@@ -307,7 +307,7 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
                     item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
                     query = {'ancestor': cat_id}
                     num = searchItem(query).count()
-                    insertItem(cat_id, item_name, None, num)
+                    insertItem(cat_id, item_name, None, str(num))
                 self.redirect('/?upload=success&category=a')
             
             else:
@@ -319,7 +319,7 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
                     if searchItem(query).count() == 0:
                         query = {'ancestor': cat_id}
                         num = searchItem(query).count()
-                        insertItem(cat_id, item_name, None, num)
+                        insertItem(cat_id, item_name, None, str(num))
                         modified[item_name] = 1
                     else:
                         modified[item_name] = 0
@@ -513,6 +513,7 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
                     template_values['comments'] = comments
+                    template_values['item_key'] = item.key()
                     if self.request.get('fail'):
                         template_values['fail'] = True
                 
@@ -521,7 +522,11 @@ class Dispatcher(webapp2.RequestHandler):
                     list = searchCat(query)
                     template_values['vote_cat'] = list
                     template_values['now'] = datetime.datetime.today()
-                        
+                    if self.request.get('not_enough'):
+                        template_values['not_enough'] = self.request.get('not_enough')
+                        template_values['cat'] = self.request.get('cat')
+                        template_values['owner'] = self.request.get('owner')
+                
                 elif self.request.get('vote_cat'):
                     owner_id = self.request.get('owner')
                     vote_cat = self.request.get('vote_cat')
@@ -530,13 +535,18 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['vote'] = []
                     
                     not_skip = 0
-                    if self.request.get('not_skip'):
+                    query={'ancestor':cat_id}
+                    count = searchItem(query).count()
+                    if count < 2:                        
+                        self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
+                    
+                    elif self.request.get('not_skip'):
                         not_skip = self.request.get('not_skip')
                         skip_item = self.request.get('skip_item')
                         query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
                         item1 = searchItem(query).get()
                         #self.response.out.write(item1)
-                    
+                
                         item2 = pickRandom(cat_id)
                         while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                             item2 = pickRandom(cat_id)
@@ -560,21 +570,24 @@ class Dispatcher(webapp2.RequestHandler):
                             item2 = pickRandom(cat_id)                                               
                                                  
                     else:
-                        item1,r1 = pickRandom(cat_id)
-                        item2,r2 = pickRandom(cat_id)
+                        item1 = pickRandom(cat_id)
+                        item2 = pickRandom(cat_id)
                         
                         while not item1:
                             item1 = pickRandom(cat_id)
                                                     
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
-                        
-                    if not_skip == '1':
-                        template_values['vote'] = [item1, item2]
-                        template_values['vote_key'] = [item1.key(), item2.key()]
-                    else:
-                        template_values['vote'] = [item2, item1]
-                        template_values['vote_key'] = [item2.key(), item1.key()]
+                    
+                    if count >= 2:
+                        if count == 2:
+                            template_values['not_enough'] = 2
+                        if not_skip == '1':
+                            template_values['vote'] = [item1, item2]
+                            template_values['vote_key'] = [item1.key(), item2.key()]
+                        else:
+                            template_values['vote'] = [item2, item1]
+                            template_values['vote_key'] = [item2.key(), item1.key()]
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
                     
