@@ -560,6 +560,7 @@ class Dispatcher(webapp2.RequestHandler):
                     cat_id = cat_key(owner_id, vote_cat)
                     
                     template_values['vote'] = []
+                    template_values['owner'] = owner_id
                     
                     not_skip = 0
                     query={'ancestor':cat_id}

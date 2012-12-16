@@ -50,8 +50,10 @@
                 <div class="span9">
                     {% if not_enough %}
                     <div class="alert alert-error">
-                        <center><p>There is not enough item you can vote<p>
+                        <center><p>There are not enough items for you to vote under this category.<p>
+                            {% if owner == user_id %}
                             <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                            {% endif %}
                         </center>
                     </div>
                     {% else %}
