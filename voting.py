@@ -308,6 +308,7 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
                     query = {'ancestor': cat_id}
                     num = searchItem(query).count()
                     insertItem(cat_id, item_name, None, str(num))
+                blob_reader.close()
                 self.redirect('/?upload=success&category=a')
             
             else:
@@ -338,6 +339,7 @@ class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
                         q_item = {'ancestor':cat_id, 'name':l.name}
                         deleteItem(q_item)
                             
+                blob_reader.close()
                 self.redirect('/?upload=success&category=a')
 
                 #except:
@@ -393,6 +395,7 @@ class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
             self.error(404)
         else:
             self.send_blob(file_key)
+            db.delete(file_key)
             #self.response.out.write(file_key)
 
 class AddComment(webapp2.RequestHandler):
@@ -435,9 +438,31 @@ class RemoveItem(webapp2.RequestHandler):
 
 class Search(webapp2.RequestHandler):
     def get(self):
+        template_values = {}
         q = self.request.get('query')
-        self.redirect('/?query=' + q)
-       
+        query_name = self.request.get('query')
+        q_cat = {'name':query_name}
+        cat_list = searchCat(q_cat)
+        q_item = {'name': query_name}
+        item_list = searchItem(q_item)
+            
+        template_values['query_cat'] = cat_list
+        template_values['query_item'] = item_list
+        template_values['count_cat'] = cat_list.count()
+        template_values['count_item'] = item_list.count()
+            
+        a = {}
+        b = {}
+        i = 0
+        for item in item_list:
+            a[item.name] = i
+            i = i + 1
+            b[item.name] = item.key()
+        template_values['id'] = a
+        template_values['key'] = b
+        template = jinja_environment.get_template('index.html')
+        self.response.out.write(template.render(template_values))
+
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -611,27 +636,7 @@ class Dispatcher(webapp2.RequestHandler):
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
     
-                elif self.request.get('query'):
-                    query_name = self.request.get('query')
-                    q_cat = {'name':query_name}
-                    cat_list = searchCat(q_cat)
-                    q_item = {'name': query_name}
-                    item_list = searchItem(q_item)
-                    
-                    template_values['query_cat'] = cat_list
-                    template_values['query_item'] = item_list
-                    template_values['count_cat'] = cat_list.count()
-                    template_values['count_item'] = item_list.count()
-    
-                    a = {}
-                    b = {}
-                    i = 0
-                    for item in item_list:
-                        a[item.name] = i
-                        i = i + 1
-                        b[item.name] = item.key()
-                    template_values['id'] = a
-                    template_values['key'] = b
+                
         
             else:
                 template_values['home'] = True
