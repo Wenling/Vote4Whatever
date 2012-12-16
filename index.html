@@ -5,13 +5,15 @@
             <link media="screen" rel="stylesheet" href="/css/bootstrap.min.css" />
             <link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" />
             <link rel="stylesheet" href="/css/docs.css" />
+            <link rel="stylesheet" href="/css/datepicker.css" />
             <script src="http://code.jquery.com/jquery-latest.js"></script>
             <script type="text/javascript" src="/js/bootstrap.min.js"></script>
-            </head>
+            <script type="text/javascript" src="/js/bootstrap-datepicker.js"></script>
+    </head>
     <body>
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
-                <a class="brand" href="#">Home</a>
+                <!--<a class="brand" href="#">Home</a>-->
                 <ul class="nav">
                     <li class="active"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>{{ username }}</b><b class="caret"></b></a>
                         <ul class="dropdown-menu">
@@ -26,6 +28,14 @@
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
                 </ul>
+                <div class="row">
+                <div class="span4 offset7">
+                    <form class="form-search" action="/search" method="get" style="margin:0 0">
+                        <input type="text" class="input-medium search-query">
+                        <button type="submit" class="btn">Search</button>
+                    </form>
+                </div>
+                </div>
             </div>
         </div>
         <header class="jumbotron subhead">
@@ -44,7 +54,13 @@
                         <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                         {% for cat in vote_cat %}
                         {% if cat.name %}
-                        <tr><td><a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        <tr><td>
+                            {% if cat.expiration_time > now %}
+                            <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
+                            {% else %}
+                            Vote
+                            {% endif %}
+                        </td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
                         {% endif %}
                         {% endfor %}
                     </table>
@@ -128,14 +144,37 @@
                             Successfully added!
                         </div>
                         {% endif %}
+                        <script>
+                            $(function(){                              
+                              var startDate = new Date()
+                              window.prettyPrint && prettyPrint();
+                              $('#dp2').datepicker()
+                              .on('changeDate', function(ev){
+                                  if (ev.date.valueOf() < startDate.valueOf()){
+                                  //alert(startDate.valueOf())
+                                  //alert(ev.date.valueOf())
+                                  $('#alert').show();
+                                  } else {
+                                  $('#alert').hide();
+                                  startDate = new Date(ev.date);
+                                  $('#startDate').text($('#dp2').data('date'));
+                                  }
+                                  $('#dp2').datepicker('hide');
+                                  });
+                              });
+                            </script>
                         <div class="tab-pane active" id="addCat">
                             <form action="/addCat" method="post">
-                                <legend>Category Name:<input type="text" name="cat_name"></legend>
-                                <legend>Expiration Time: <input type="text" name="expiration_time"></legend>
+                               
+                                Category Name:<input type="text" name="cat_name">
+                                Expiration Time: <input type="text" name="expiration_time" id="dp2">
+                                <div class="alert alert-error" id="alert" style="display:none;">
+                                    The start date can not be earlier than the today date.
+                                </div>
                                 <input class="btn btn-primary" type="submit" value="Add Category">
                                 <input class="btn" type="reset" value="Reset">
                             </form>
-                        </div>
+                        </div>                        
                         <div class="tab-pane" id="importCat">
                             <form action={{import}} method="post" enctype="multipart/form-data">
                                 <legend>Import Category directly from here: <br/><input type="file" name="cat_path"></legend>
@@ -153,7 +192,7 @@
                     </script>
                                         
                 </div>
-                <div class="span5">
+                <div class="span8">
                 {% else %}
                 <div class = "span9">
                 {% endif %}
@@ -179,7 +218,7 @@
             {% elif items %}
             <div class="row">
                 <div class="row">
-                    <div class="span3 offset7">
+                    <div class="span3 offset9">
                         <a class="btn btn-info"href="/export?cat_name={{cat_name}}&owner={{owner}}">Export <b>{{cat_name}}</b> as XML</a>
                     </div>
                 </div>
@@ -205,7 +244,7 @@
                                     
                     </form>
                 </div>
-                <div class="span6">
+                <div class="span9">
                 {% else %}
                 <div class="span9">
                 {% endif %}

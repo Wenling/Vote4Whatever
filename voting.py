@@ -40,7 +40,7 @@ class Item(db.Model):
     name = db.StringProperty()
     rand = db.FloatProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
-    picture = db.BlobProperty(default='/images/ny.jpg')
+    picture = db.BlobProperty(default='img/ny.jpg')
 
 #vote has ancestor item
 class Vote(db.Model):
@@ -68,9 +68,10 @@ def item_key(cat_id=None, item_name=None):
 
 """These functions are the models' manipulations"""
 #insert a new category
-def insertCat(user_id, user_name, cat_name):
+def insertCat(user_id, user_name, cat_name, expiration_time):
     ancestor = user_key(user_id)
-    cat_expt = datetime.datetime(2013, 11, 1, 1)
+    time_str = expiration_time.split('/')
+    cat_expt = datetime.datetime(int(time_str[2]), int(time_str[0]), int(time_str[1]), 1)
     cat = Category(parent=ancestor, owner=user_name, owner_id=user_id, key_name=cat_name, name=cat_name, expiration_time=cat_expt)
     cat.put()
     return cat
@@ -207,13 +208,14 @@ def prettify(elem):
 class AddCat(webapp2.RequestHandler):
     def post(self):
         cat_name = self.request.get('cat_name')
+        expiration_time = self.request.get('expiration_time')
         
         if users.get_current_user():
             user_id = users.get_current_user().user_id()
             user_name = users.get_current_user().nickname()
             query = {'ancestor':user_key(user_id), 'name':cat_name}
             if searchCat(query).count() == 0:
-                cat = insertCat(user_id, user_name, cat_name)
+                cat = insertCat(user_id, user_name, cat_name, expiration_time)
                 #self.response.out.write(cat_id)
                 self.redirect('/?add=success&cat_name=' + cat_name + '&owner=' + user_id)
             else:
@@ -469,6 +471,7 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['cat_name'] = cat_name
                     template_values['owner'] = owner_id
                     
+                    
                     a = {}
                     b = {}
                     i = 0
@@ -505,7 +508,8 @@ class Dispatcher(webapp2.RequestHandler):
                     query = {}
                     list = searchCat(query)
                     template_values['vote_cat'] = list
-            
+                    template_values['now'] = datetime.datetime.today()
+                        
                 elif self.request.get('vote_cat'):
                     owner_id = self.request.get('owner')
                     vote_cat = self.request.get('vote_cat')

@@ -28,6 +28,9 @@
 		AA16FF4F1677E155008F2A42 /* voting_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting_demo.py; path = ../voting_demo.py; sourceTree = "<group>"; };
 		AA16FF501677E155008F2A42 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA16FF511677E155008F2A42 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
+		AA354AEB167D6425009FF615 /* datepicker.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = datepicker.css; sourceTree = "<group>"; };
+		AA354AEC167D6425009FF615 /* bootstrap-datepicker.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "bootstrap-datepicker.js"; sourceTree = "<group>"; };
+		AA354AEE167D6425009FF615 /* datepicker.less */ = {isa = PBXFileReference; lastKnownFileType = text; path = datepicker.less; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -43,6 +46,7 @@
 		AA16FF2F1677E142008F2A42 = {
 			isa = PBXGroup;
 			children = (
+				AA354AED167D6425009FF615 /* less */,
 				AA0F2A3D167B0BB0000D0694 /* file */,
 				AA16FF381677E155008F2A42 /* app.yaml */,
 				AA16FF391677E155008F2A42 /* css */,
@@ -61,6 +65,7 @@
 		AA16FF391677E155008F2A42 /* css */ = {
 			isa = PBXGroup;
 			children = (
+				AA354AEB167D6425009FF615 /* datepicker.css */,
 				AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */,
 				AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */,
 				AA16FF3C1677E155008F2A42 /* bootstrap.css */,
@@ -86,6 +91,7 @@
 		AA16FF471677E155008F2A42 /* js */ = {
 			isa = PBXGroup;
 			children = (
+				AA354AEC167D6425009FF615 /* bootstrap-datepicker.js */,
 				AA16FF481677E155008F2A42 /* bootstrap.js */,
 				AA16FF491677E155008F2A42 /* bootstrap.min.js */,
 				AA16FF4A1677E155008F2A42 /* prettify.js */,
@@ -105,6 +111,15 @@
 		AA16FF4D1677E155008F2A42 /* Products */ = {
 			isa = PBXGroup;
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AA354AED167D6425009FF615 /* less */ = {
+			isa = PBXGroup;
+			children = (
+				AA354AEE167D6425009FF615 /* datepicker.less */,
+			);
+			name = less;
+			path = ../less;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
