@@ -40,7 +40,7 @@ class Item(db.Model):
     #category = db.Key()
     name = db.StringProperty()
     create_time = db.DateTimeProperty(auto_now_add=True)
-    picture = db.BlobProperty(default='img/ny.jpg')
+    picture = db.BlobProperty()
 
 #vote has ancestor item
 class Vote(db.Model):
