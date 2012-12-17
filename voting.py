@@ -574,11 +574,14 @@ class Dispatcher(webapp2.RequestHandler):
                     
                     not_skip = 0
                     query={'ancestor':cat_id}
+                    count = searchItem(query).count()
+                    """
                     if memcache.get('count_'+owner_id+'_'+vote_cat):
                         count = memcache.get('count_'+owner_id+'_'+vote_cat)
                     else:
                         count = searchItem(query).count()
                         memcache.add('count_'+owner_id+'_'+vote_cat, count, 60)
+                        """
                     if count <= 2:
                         self.redirect('/?vote_cat=all&cat='+vote_cat+'&owner='+owner_id+'&not_enough='+str(count))
                     
@@ -605,12 +608,12 @@ class Dispatcher(webapp2.RequestHandler):
                         
                             item1 = pickRandom(cat_id)
                         
-                            while (not item1) or (item1 and item1.name == prev1) or (item1 and item1.name == prev2):
+                            while (not item1) or (item1 and item1.name == prev1):
                                 item1 = pickRandom(cat_id)
                         
                             item2 = pickRandom(cat_id)
-                        
-                            while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev2) or (item2 and item2.name == prev1):
+                            
+                            while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev1):
                                 item2 = pickRandom(cat_id)
         
                     else:
