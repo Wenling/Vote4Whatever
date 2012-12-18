@@ -511,9 +511,6 @@ class ViewCategory(webapp2.RequestHandler):
         if self.request.get('add_fail'):
             template_values['add_fail'] = True
                     
-        if self.request.get('not_enough'):
-            template_values['not_enough'] = self.request.get('not_enough')
-                    
         user = users.get_current_user()
         if user:
             url = users.create_logout_url(self.request.uri)
@@ -529,10 +526,9 @@ class ViewCategory(webapp2.RequestHandler):
         
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
-        template_values['now'] = datetime.datetime.today()
 
         template = jinja_environment.get_template('view/category_view.html')
-        self.response.out.write(template_values)
+        self.response.out.write(template.render(template_values))
             
 #self.response.out.write(list)
 
@@ -578,7 +574,20 @@ class Dispatcher(webapp2.RequestHandler):
                     if self.request.get('fail'):
                         template_values['fail'] = True
                 
-                
+                elif self.request.get('vote_cat')=='all':
+                    query = {}
+                    if memcache.get('cat_all'):
+                        list = memcache.get('cat_all')
+                    else:
+                        list = searchCat(query)
+                        memcache.add('cat_all', list, 60)
+                            
+                    template_values['vote_cat'] = list
+                    template_values['now'] = datetime.datetime.today()
+                    if self.request.get('not_enough'):
+                        template_values['not_enough'] = self.request.get('not_enough')
+                        template_values['cat'] = self.request.get('cat')
+                        template_values['owner'] = self.request.get('owner')
                 
                 elif self.request.get('vote_cat'):
                     owner_id = self.request.get('owner')
@@ -663,7 +672,17 @@ class Dispatcher(webapp2.RequestHandler):
                     results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
                     template_values['results'] = results_sorted
                     template_values['unvoted'] = unvoted
-                       
+    
+                elif self.request.get('stats')=='all':
+                    query = {}
+                    if memcache.get('cat_all'):
+                        list = memcache.get('cat_all')
+                    else:
+                        list = searchCat(query)
+                        memcache.add('cat_all', list, 60)
+                    
+                    template_values['stats_cat'] = list.run()
+    
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
     
