@@ -11,6 +11,7 @@
 		AA10F68C1680302500019B80 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		AA10F68F1680307900019B80 /* category_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = category_view.html; sourceTree = "<group>"; };
 		AA10F6901680438800019B80 /* setting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setting.py; sourceTree = "<group>"; };
+		AA10F6911680E35C00019B80 /* item_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = item_view.html; sourceTree = "<group>"; };
 		AA16FF381677E155008F2A42 /* app.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = app.yaml; path = ../app.yaml; sourceTree = "<group>"; };
 		AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.css"; sourceTree = "<group>"; };
 		AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.min.css"; sourceTree = "<group>"; };
@@ -27,7 +28,6 @@
 		AA16FF491677E155008F2A42 /* bootstrap.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.min.js; sourceTree = "<group>"; };
 		AA16FF4A1677E155008F2A42 /* prettify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prettify.js; sourceTree = "<group>"; };
 		AA16FF4C1677E155008F2A42 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
-		AA16FF4F1677E155008F2A42 /* voting_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting_demo.py; path = ../voting_demo.py; sourceTree = "<group>"; };
 		AA16FF501677E155008F2A42 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA16FF511677E155008F2A42 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
 		AA354AEB167D6425009FF615 /* datepicker.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = datepicker.css; sourceTree = "<group>"; };
@@ -50,6 +50,7 @@
 			children = (
 				AA10F68C1680302500019B80 /* index.html */,
 				AA10F68F1680307900019B80 /* category_view.html */,
+				AA10F6911680E35C00019B80 /* item_view.html */,
 			);
 			name = view;
 			path = ../view;
@@ -69,7 +70,6 @@
 				AA16FF461677E155008F2A42 /* index.yaml */,
 				AA16FF471677E155008F2A42 /* js */,
 				AA16FF4B1677E155008F2A42 /* Voting */,
-				AA16FF4F1677E155008F2A42 /* voting_demo.py */,
 				AA16FF501677E155008F2A42 /* voting.py */,
 				AA16FF511677E155008F2A42 /* voting.pyc */,
 			);
