@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% extends "view/index.html" %}
+    {% block head %}
+    {{ super() }}
+    {% endblock %}
+    
+    {% block header %}
+    {{ super() }}
+    {% endblock %}
+        <div class="container">
+            {% if vote_cat %}
+            <div class="row">
+                <div class="span9">
+                    {% if not_enough %}
+                    <div class="alert alert-error">
+                        <center><p>There are not enough items for you to vote under this category.<p>
+                            {% if owner == user_id %}
+                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                            {% endif %}
+                        </center>
+                    </div>
+                    {% else %}
+                    <table class="table table-hover" id="Vote_Categories">
+                        <thead>
+                            <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                        </thead>
+                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                        {% for cat in vote_cat %}
+                        {% if cat.name %}
+                        <tr><td>
+                            {% if cat.expiration_time > now %}
+                            <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
+                            {% else %}
+                            Vote
+                            {% endif %}
+                        </td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif vote %}
+            <div class="row">
+                <div class="span8 offset1">
+                    {% if prev1 %}
+                    <div class="alert alert-block">
+                        <center>You vote <b>{{prev1}}</b> over <b>{{prev2}} </b></center>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="span9">
+                    <div class="row">
+                        <div class="span1"></div>
+                        <ul class="thumbnails">
+                            <li class="span4" style="background-color:#f8f8f8;">
+                                <div class="thumbnail">
+                                    {% if vote[0].picture %}
+                                    <img src="/img?img_id={{vote_key[0]}}" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;">
+                                        {% else %}
+                                        <img src="/images/ny.jpg" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;"></img>
+                                        {% endif %}
+                                        <div class="caption">
+                                            <h3><center>{{vote[0].name}}</center></h3>
+                                            <br/>
+                                            <center>
+                                                <a href="/vote?item_name={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[1].name}}" class="btn btn-primary">Vote</a>
+                                                {% if not_enough %}
+                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                {% else %}
+                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn">Skip</a>
+                                                {% endif %}
+                                            </center>
+                                        </div>
+                                        </div>
+                            </li>
+                            <li class="span4" style="background-color:#f8f8f8;">
+                                <div class="thumbnail">
+                                    {% if vote[1].picture %}
+                                    <img src="/img?img_id={{vote_key[1]}}" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;">
+                                        {% else %}
+                                        <img src="/images/ny.jpg" data-src="holder.js/300x300" alt="" style="width: 300px; height: 300px;"></img>
+                                        {% endif %}
+                                        <div class="caption">
+                                            <h3><center>{{vote[1].name}}</center></h3>
+                                            <br/>
+                                            <center>
+                                                <a href="/vote?item_name={{vote[1].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[0].name}}" class="btn btn-primary">Vote</a>
+                                                {% if not_enough %}
+                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                {% else %}
+                                                <a href="/vote?not_skip=1&item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&skip_item={{vote[1].name}}" class="btn">Skip</a>
+                                                {% endif %}
+                                            </center>
+                                        </div>
+                                        </div>
+                            </li>
+                            
+                        </ul>
+                        
+                    </div>
+                </div>
+                <div class="span8 offset1">
+                    <div class="alert alert-block">
+                        <center><h4><a href="/?stats_cat={{cat}}&owner={{owner}}">See what everyone votes</a></h4></center>
+                    </div>
+                </div>
+            </div>
+            {% elif categories %}
+            <div class="row">
+                {% if view==False %}
+                <div class="span4">
+                    <ul class="nav nav-tabs" id="myTab">
+                        <li class="active"><a href="#addCat">Add a Category</a></li>
+                        <li><a href="#importCat">Import a Category</a></li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        {% if upload=='fail' %}
+                        <div class="alert alert-error">
+                            Upload failed..
+                        </div>
+                        {% elif upload=='success' %}
+                        <div class="alert alert-success">
+                            Upload succeeded!
+                        </div>'
+                        {% endif %}
+                        {% if add=='fail' %}
+                        <div class="alert alert-error">
+                            You have added this one before.
+                        </div>
+                        {% elif add=='success' %}
+                        <div class="alert alert-success">
+                            Successfully added!
+                        </div>
+                        {% endif %}
+                        <script>
+                            $(function(){
+                              var startDate = new Date()
+                              window.prettyPrint && prettyPrint();
+                              $('#dp2').datepicker()
+                              .on('changeDate', function(ev){
+                                  if (ev.date.valueOf() < startDate.valueOf()){
+                                  //alert(startDate.valueOf())
+                                  //alert(ev.date.valueOf())
+                                  $('#alert').show();
+                                  } else {
+                                  $('#alert').hide();
+                                  startDate = new Date(ev.date);
+                                  $('#startDate').text($('#dp2').data('date'));
+                                  }
+                                  $('#dp2').datepicker('hide');
+                                  });
+                              });
+                            </script>
+                        <div class="tab-pane active" id="addCat">
+                            <form action="/addCat" method="post">
+                                
+                                Category Name:<input type="text" name="cat_name">
+                                    Expiration Time: <input type="text" name="expiration_time" id="dp2">
+                                        <div class="alert alert-error" id="alert" style="display:none;">
+                                            The start date can not be earlier than the today date.
+                                        </div>
+                                        <input class="btn btn-primary" type="submit" value="Add Category">
+                                            <input class="btn" type="reset" value="Reset">
+                                                </form>
+                        </div>
+                        <div class="tab-pane" id="importCat">
+                            <form action={{import}} method="post" enctype="multipart/form-data">
+                                <legend>Import Category directly from here: <br/><input type="file" name="cat_path"></legend>
+                                <input class="btn btn-primary" type="submit" value="Add Category">
+                                    <input class="btn" type="reset" value="Reset">
+                                        </form>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        $('#myTab a').click(function (e) {
+                                            e.preventDefault();
+                                            $(this).tab('show');
+                                            })
+                        </script>
+                    
+                </div>
+                <div class="span8">
+                    {% else %}
+                    <div class = "span9">
+                        {% endif %}
+                        <table class="table table-hover" id="Categories">
+                            <thead>
+                                <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                            </thead>
+                            <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                            {% for cat in categories %}
+                            {% if cat.name %}
+                            <tr><td>
+                                {% if view==False %}
+                                <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                                {% else %}
+                                <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                                {% endif %}
+                            </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+                {% elif items %}
+                <div class="row">
+                    <div class="row">
+                        <div class="span3 offset9">
+                            <a class="btn btn-info"href="/export?cat_name={{cat_name}}&owner={{owner}}">Export <b>{{cat_name}}</b> as XML</a>
+                        </div>
+                    </div>
+                    
+                    {% if owner == user_id %}
+                    {% if add_fail %}
+                    <div class="alert alert-error">
+                        Failed to add the item.
+                    </div>
+                    {% endif %}
+                    <div class="span3">
+                        <form action="/addItem?cat_name={{cat_name}}&owner={{owner}}" method="post" class="bs-docs-example" enctype="multipart/form-data">
+                            <legend>Add a new one:</legend>
+                            <label>Item Name:</label><input type="text" name="item_name">
+                                <label>Image: </label><input type="file" name="picture">
+                                    
+                                            <hr>
+                                            <div class="controls">
+                                                <input class="btn btn-primary" type="submit" value="Add Item">
+                                                    <input class="btn" type="reset" value="Reset">
+                                                        </div>
+                                            
+                                            </form>
+                    </div>
+                    <div class="span9">
+                        {% else %}
+                        <div class="span9">
+                            {% endif %}
+                            <table class="table table-hover" id="Items">
+                                <thead>
+                                    {% if user_id == owner %}
+                                    <th></th>
+                                    {% endif %}
+                                    <th></th><th>Image</th><th>Name</th><th>Create Time</th>
+                                </thead>
+                                <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                                {% for item in items %}
+                                {% if item.name %}
+                                <tr><td>
+                                    {% if user_id == owner %}
+                                    <a href="#{{id[item.name]}}" data-toggle="modal">Remove</a></td><td>
+                                        <!-- Modal -->
+                                        <div id="{{id[item.name]}}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                            <div class="modal-body">
+                                                <div class="alert">
+                                                    <p>Are you sure to delete <b>{{ item.name }}</b>?</p>
+                                                </div>
+                                                
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form action="/removeItem" method="post">
+                                                    <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                                                        <input type="hidden" name = 'owner' value="{{ owner }}">
+                                                            <input type="hidden" name = 'item_name' value="{{ item.name }}">
+                                                                <button class="btn" data-dismiss="modal" aria-hidden="true">No</button>
+                                                                <input type="submit" value="Yes" class="btn btn-primary">
+                                                                    </form>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>
+                                    </td><td>
+                                        {% if item.picture %}
+                                        <img src="/img?img_id={{key[item.name]}}" style="width: 250px; height: 300px;"></img>
+                                        {% else %}
+                                        <img src="/images/ny.jpg" style="width: 250px; height: 300px;"></img>
+                                        {% endif %}
+                                        
+                                    </td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                                {% endif %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                    {% elif item %}
+                    <div class="row">
+                        <div class="span4">
+                            <ul class="thumbnails">
+                                <li class="span4"  style="background-color:#f8f8f8;">
+                                    <div class="thumbnail">
+                                        {% if item.picture %}
+                                        <img src="/img?img_id={{item_key}}" data-src="holder.js/300x300" alt="" style="width: 250px; height: 300px;">
+                                            {% else %}
+                                            <img src="/images/ny.jpg" style="width: 250px; height: 300px;"></img>
+                                            {% endif %}
+                                            <center>
+                                                <h3>{{item.name}}</h3>
+                                                <p>{{item.create_time}}</p>
+                                            </center>
+                                            </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="span5">
+                            
+                            <!-- show comments here -->
+                            {% if comments %}
+                            <table class="table table-hover" id="Item">
+                                <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                                {% for comment in comments %}
+                                {% if comment.content %}
+                                <tr><td><b>{{comment.commenter}}</b></td><td>{{ comment.content }}</td><td>{{ comment.create_time }}</td></tr>
+                                {% endif %}
+                                {% endfor %}
+                            </table>
+                            {% endif %}
+                            {% if fail %}
+                            <div class="alert alert-error">
+                                You are only allowed to make one comment on every item.
+                            </div>
+                            {% endif %}
+                            <b>Leave your thoughts here:</b>
+                            <form action="/addComment" method="post">
+                                <legend><textarea name="content" rows="3" cols="60"></textarea></legend>
+                                <input type="hidden" name = 'owner' value="{{ owner }}">
+                                    <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                                        <input type="hidden" name = 'item_name' value="{{ item.name }}">
+                                            <input class="btn btn-primary" type="submit" value="Comment">
+                                                <input class="btn" type="reset" value="Reset">
+                                                    
+                                                    </form>
+                        </div>
+                    </div>
+                    {% elif results or unvoted %}
+                    <div class="row">
+                        <table class="table table-hover" id="Results">
+                            <caption></caption>
+                            <thead>
+                                <tr><th>Name</th><th>Win</th><th>Lose</th><th>Percentage</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for name in results %}
+                                {% if name %}
+                                <tr>
+                                    <td>{{name[0]}}</td><td>{{name[1][0]}}</td><td>{{name[1][1]}}</td><td>{{name[1][2]}}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% for name in unvoted %}
+                                {% if unvoted[name] %}
+                                <tr>
+                                    <td>{{name}}</td><td>{{unvoted[name][0]}}</td><td>{{unvoted[name][1]}}</td><td>{{unvoted[name][2]}}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% elif stats_cat %}
+                <div class="row">
+                    <div class="span9">
+                        <table class="table table-hover" id="Category">
+                            <thead>
+                                <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                            </thead>
+                            <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                            {% for cat in stats_cat %}
+                            {% if cat.name %}
+                            <tr><td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+                {% elif query_cat or query_item %}
+                <div class="row">
+                    <div class="span3">
+                        Found {{count_cat}} Categories, {{count_item}} Items.
+                    </div>
+                    <div class="span9">
+                        <ul class="nav nav-tabs" id="myTab">
+                            <li class="active"><a href="#Cat">Category</a></li>
+                            <li><a href="#Item">Item</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="Cat">
+                                <table class="table table-hover" id="Categories">
+                                    <thead>
+                                        <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                                    </thead>
+                                    {% for cat in query_cat %}
+                                    {% if cat.name %}
+                                    <tr><td>
+                                        {% if view==False %}
+                                        <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                                        {% else %}
+                                        <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                                        {% endif %}
+                                    </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="Item">
+                                <table class="table table-hover" id="Items">
+                                    <thead>
+                                        {% if user_id == owner %}
+                                        <th></th>
+                                        {% endif %}
+                                        <th></th><th>Image</th><th>Name</th><th>Create Time</th>
+                                    </thead>
+                                    <!-- {% if items %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                                    {% for item in query_item %}
+                                    {% if item.name %}
+                                    <tr><td>
+                                        {% if user_id == owner %}
+                                        <a href="#{{id[item.name]}}" data-toggle="modal">Remove</a></td><td>
+                                            <!-- Modal -->
+                                            <div id="{{id[item.name]}}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                <div class="modal-body">
+                                                    <div class="alert">
+                                                        <p>Are you sure to delete <b>{{ item.name }}</b>?</p>
+                                                    </div>
+                                                    
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form action="/removeItem" method="post">
+                                                        <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                                                            <input type="hidden" name = 'owner' value="{{ owner }}">
+                                                                <input type="hidden" name = 'item_name' value="{{ item.name }}">
+                                                                    <button class="btn" data-dismiss="modal" aria-hidden="true">No</button>
+                                                                    <input type="submit" value="Yes" class="btn btn-primary">
+                                                                        </form>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>
+                                        </td><td>
+                                            {% if item.picture %}
+                                            <img src="/img?img_id={{key[item.name]}}" style="width: 250px; height: 300px;"></img>
+                                            {% else %}
+                                            <img src="/images/ny.jpg" style="width: 250px; height: 300px;"></img>
+                                            {% endif %}
+                                        </td><td>{{ item.name }}</td><td>{{ item.create_time }}</td></tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <script>
+                            $('#myTab a').click(function (e) {
+                                                e.preventDefault();
+                                                $(this).tab('show');
+                                                })
+                            </script>
+                    </div>
+                </div>
+                {% elif home %}
+                <div class="row">
+                    <h3>Requirements</h3>
+                    <p>
+                    Given these requirements you will likely have to rewrite parts of your code (for instance, App Engine does not allow shell scripts to be invoked from Python).  In terms of new features, you should implement the following:</p>
+                    <p>The system should handle multiple users and associate categories/items with a logged in user.</p>
+                    <p>Users should be able to create and edit a category with items via the web.  Anyone can vote on any category, but only the creator of a category can edit it.</p>
+                    <p>Users should be able to view any category via the web, not just the two fixed ones in assignment 4.</p>
+                    <p>Users should be able to export and import a category with XML.  Example format is here.  Exporting is possible for any user's category.  Importing will create a new category (you must make sure an existing category with the same name does not already exist -- or, you may support this by ensuring that the author can only replace their own categories).</p>
+                    <p>In addition, you should implement one of the following advanced features.  It is up to you which one.</p>
+                    <p>Allow a user to change the items in a category.  When this happens, the results for that item must be removed.  Also, imports must be supported that replace a previous import (meaning items that do not change are preserved, items that are removed have results deleted).</p>
+                    <p>Support user comments about an item.  A user should not be able to comment on an item more than once.  The comments should be shown in the results view by each item.</p>
+                    <p>Search capability to find items and categories that match supplied keywords.  For example a search for "Apple" could match "Apple MacBook" in the category "Laptops" as well as "Apple" in the category "Fruits".</p>
+                    <p>Support for expiration time in categories, after which point voting is no longer possible but viewing results is.  Expiration times should be able to be set in the category editor.</p>
+                    <p>Support images associated with each item.  They should be displayed at vote time. In the editor, images must be uploaded into your data store (do not use links), and the XML format for both import and export must handle serializing images.</p>
+                    <a href="https://docs.google.com/document/pub?id=1Bmu6juZw1vVkBvze7rQi8olCEqx0rGAZPTN-_20abDs">Reference</a>
+                </div>
+                {% else %}
+                <div class="row">
+                    <div class="span6 offset3">
+                        <div class="hero-unit">
+                            <h1>Vote. Simplicity.</h1>
+                            <p></p>
+                            <p class="alert alert-info">This function right now is unfortunately unavaible.</p>
+                            {% if not username %}
+                            <a class="btn btn-primary btn-large" href="{{ url }}">
+                                Login
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% block footer %}
+                {{ super() }}
+                {% endblock %}
+                
+                </body>
+</html>

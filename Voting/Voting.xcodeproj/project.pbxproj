@@ -8,6 +8,9 @@
 
 /* Begin PBXFileReference section */
 		AA0F2A3E167B0BB0000D0694 /* cat.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = cat.xml; sourceTree = "<group>"; };
+		AA10F68C1680302500019B80 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		AA10F68F1680307900019B80 /* category_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = category_view.html; sourceTree = "<group>"; };
+		AA10F6901680438800019B80 /* setting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setting.py; sourceTree = "<group>"; };
 		AA16FF381677E155008F2A42 /* app.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = app.yaml; path = ../app.yaml; sourceTree = "<group>"; };
 		AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.css"; sourceTree = "<group>"; };
 		AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.min.css"; sourceTree = "<group>"; };
@@ -19,7 +22,6 @@
 		AA16FF421677E155008F2A42 /* glyphicons-halflings-white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings-white.png"; sourceTree = "<group>"; };
 		AA16FF431677E155008F2A42 /* glyphicons-halflings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings.png"; sourceTree = "<group>"; };
 		AA16FF441677E155008F2A42 /* ny.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ny.jpg; sourceTree = "<group>"; };
-		AA16FF451677E155008F2A42 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = index.html; path = ../index.html; sourceTree = "<group>"; };
 		AA16FF461677E155008F2A42 /* index.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = index.yaml; path = ../index.yaml; sourceTree = "<group>"; };
 		AA16FF481677E155008F2A42 /* bootstrap.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.js; sourceTree = "<group>"; };
 		AA16FF491677E155008F2A42 /* bootstrap.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.min.js; sourceTree = "<group>"; };
@@ -43,16 +45,27 @@
 			path = ../file;
 			sourceTree = "<group>";
 		};
+		AA10F68B1680302500019B80 /* view */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F68C1680302500019B80 /* index.html */,
+				AA10F68F1680307900019B80 /* category_view.html */,
+			);
+			name = view;
+			path = ../view;
+			sourceTree = "<group>";
+		};
 		AA16FF2F1677E142008F2A42 = {
 			isa = PBXGroup;
 			children = (
+				AA10F6901680438800019B80 /* setting.py */,
 				AA354AED167D6425009FF615 /* less */,
 				AA0F2A3D167B0BB0000D0694 /* file */,
 				AA16FF381677E155008F2A42 /* app.yaml */,
 				AA16FF391677E155008F2A42 /* css */,
 				AA16FF3F1677E155008F2A42 /* favicon.ico */,
 				AA16FF401677E155008F2A42 /* img */,
-				AA16FF451677E155008F2A42 /* index.html */,
+				AA10F68B1680302500019B80 /* view */,
 				AA16FF461677E155008F2A42 /* index.yaml */,
 				AA16FF471677E155008F2A42 /* js */,
 				AA16FF4B1677E155008F2A42 /* Voting */,
