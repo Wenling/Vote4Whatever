@@ -35,7 +35,6 @@
 		AA389F0F16811A9C00F5BE56 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; name = README; path = ../README; sourceTree = "<group>"; };
 		AA389F1116811A9C00F5BE56 /* category_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = category_view.html; sourceTree = "<group>"; };
 		AA389F1316811A9C00F5BE56 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
-		AA389F1616811A9C00F5BE56 /* voting_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting_demo.py; path = ../voting_demo.py; sourceTree = "<group>"; };
 		AA389F1716811A9C00F5BE56 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA389F1816811A9C00F5BE56 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -50,7 +49,6 @@
 				AA389EFA16811A9B00F5BE56 /* file */,
 				AA389EFC16811A9B00F5BE56 /* cat.xml */,
 				AA389EFD16811A9B00F5BE56 /* img */,
-				AA389F0216811A9C00F5BE56 /* index.html */,
 				AA389F0316811A9C00F5BE56 /* index.yaml */,
 				AA389F0416811A9C00F5BE56 /* js */,
 				AA389F0916811A9C00F5BE56 /* bootstrap-datepicker.js */,
@@ -61,7 +59,6 @@
 				AA389F0F16811A9C00F5BE56 /* README */,
 				AA389F1016811A9C00F5BE56 /* view */,
 				AA389F1216811A9C00F5BE56 /* Voting */,
-				AA389F1616811A9C00F5BE56 /* voting_demo.py */,
 				AA389F1716811A9C00F5BE56 /* voting.py */,
 				AA389F1816811A9C00F5BE56 /* voting.pyc */,
 			);
@@ -126,6 +123,7 @@
 		AA389F1016811A9C00F5BE56 /* view */ = {
 			isa = PBXGroup;
 			children = (
+				AA389F0216811A9C00F5BE56 /* index.html */,
 				AA389F1116811A9C00F5BE56 /* category_view.html */,
 			);
 			name = view;

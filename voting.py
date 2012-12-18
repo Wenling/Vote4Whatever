@@ -186,10 +186,10 @@ def listResult(owner_id, cat_name, user_id):
         if favored_count == 0 and un_count == 0:
             percent = 0
             not_voted[item.name] = [0, 0, '-']
-        else:        
+        else:
             percent = favored_count / (0.0 + favored_count + un_count)
             results[item.name] = [favored_count, un_count, percent]
-    
+
     return results, not_voted
 
 def getText(nodelist):
@@ -224,6 +224,7 @@ class AddCat(webapp2.RequestHandler):
 
 class AddItem(webapp2.RequestHandler):
     def post(self):
+        template_values = {}
         user_id = users.get_current_user().user_id()
         #self.response.out.write(user_id)
         cat_name = self.request.get('cat_name')
@@ -233,17 +234,20 @@ class AddItem(webapp2.RequestHandler):
             cat_id = cat_key(owner_id, cat_name)
             item_name = self.request.get('item_name')
             pic_dir = self.request.get('picture')
-            query = {'ancestor':cat_id, 'name':item_name}
-            if searchItem(query).count() == 0:
-                query = {'ancestor': cat_id}
-                num = searchItem(query).count()
-                item = insertItem(cat_id, item_name, pic_dir, str(num))
-                #self.response.out.write(item.name)               
+            
+            if item_name:
+                query = {'ancestor': cat_id, 'name': item_name}
+                list = searchItem(query)
+                num = list.count()
+                if num == 0:
+                    item = insertItem(cat_id, item_name, pic_dir, str(num))
+                    #self.response.out.write(item.name)
                     
-                self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
-                #self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
+                    self.redirect('/category?id='+user_id+'&name='+cat_name)
+            #self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
             else:
-                self.redirect('/?add_fail=true&cat_name=' + cat_name + '&owner=' + owner_id)
+                
+                self.redirect('/category?id='+user_id+'&name='+cat_name+'&add_fail=True')
 
 class Image(webapp2.RequestHandler):
     def get(self):
@@ -268,8 +272,8 @@ class VoteItem(webapp2.RequestHandler):
             query = {'ancestor':cat_key(owner_id, cat_name), 'name':unvoted_item}
             item2 = searchItem(query).get()
             vote1 = insertVote(user_id, item1_id, item2)
-        #self.response.out.write(item_name)
-        
+            #self.response.out.write(item_name)
+            
             self.redirect('/?prev1=' + item_name + '&prev2=' + unvoted_item + '&vote_cat=' + cat_name + '&owner=' + owner_id)
         
         elif self.request.get('not_skip'):
@@ -278,75 +282,75 @@ class VoteItem(webapp2.RequestHandler):
             skip_item = self.request.get('skip_item')
             
             #self.response.out.write(item)
-#self.response.out.write(skip_item)
-
+            #self.response.out.write(skip_item)
+            
             self.redirect('/?' + urllib.urlencode({'not_skip': not_skip}) + '&item=' + item + '&skip_item=' + skip_item + '&vote_cat=' + cat_name + '&owner=' + owner_id)
 
 class ImportCat(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         #try:
-            upload = self.get_uploads()[0]
-            blob_key=upload.key()
-            blob_reader = blobstore.BlobReader(blob_key)
-            document = blob_reader.read()
-            dom = xml.dom.minidom.parseString(document)
-            cat_name = dom.getElementsByTagName("NAME")[0]
-            user_id = users.get_current_user().user_id()
-            user_name = users.get_current_user().nickname()
-            
-            name = getText(cat_name.childNodes)
-            
-            items = dom.getElementsByTagName("ITEM")
-    
-            query = {'ancestor':user_key(user_id), 'name':name}
-            if searchCat(query).count() == 0:
-                d = datetime.timedelta(days=+1)
-                expiration_time = (datetime.datetime.now()+d).strftime("%m/%d/%Y")
-                cat = insertCat(user_id, user_name, name, expiration_time)
-                cat_id = cat_key(user_id, name)
-                for item in items:                    
-                    item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+        upload = self.get_uploads()[0]
+        blob_key=upload.key()
+        blob_reader = blobstore.BlobReader(blob_key)
+        document = blob_reader.read()
+        dom = xml.dom.minidom.parseString(document)
+        cat_name = dom.getElementsByTagName("NAME")[0]
+        user_id = users.get_current_user().user_id()
+        user_name = users.get_current_user().nickname()
+        
+        name = getText(cat_name.childNodes)
+        
+        items = dom.getElementsByTagName("ITEM")
+        
+        query = {'ancestor':user_key(user_id), 'name':name}
+        if searchCat(query).count() == 0:
+            d = datetime.timedelta(days=+1)
+            expiration_time = (datetime.datetime.now()+d).strftime("%m/%d/%Y")
+            cat = insertCat(user_id, user_name, name, expiration_time)
+            cat_id = cat_key(user_id, name)
+            for item in items:
+                item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                query = {'ancestor': cat_id}
+                num = searchItem(query).count()
+                insertItem(cat_id, item_name, None, str(num))
+            blob_reader.close()
+            self.redirect('/?upload=success&category=a')
+        
+        else:
+            modified = {}
+            cat_id = cat_key(user_id, name)
+            for item in items:
+                item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
+                query = {'ancestor':cat_id, 'name':item_name}
+                if searchItem(query).count() == 0:
                     query = {'ancestor': cat_id}
                     num = searchItem(query).count()
                     insertItem(cat_id, item_name, None, str(num))
-                blob_reader.close()
-                self.redirect('/?upload=success&category=a')
+                    modified[item_name] = 1
+                else:
+                    modified[item_name] = 0
             
-            else:
-                modified = {}
-                cat_id = cat_key(user_id, name)
-                for item in items:                    
-                    item_name = getText(item.getElementsByTagName("NAME")[0].childNodes)
-                    query = {'ancestor':cat_id, 'name':item_name}
-                    if searchItem(query).count() == 0:
-                        query = {'ancestor': cat_id}
-                        num = searchItem(query).count()
-                        insertItem(cat_id, item_name, None, str(num))
-                        modified[item_name] = 1
-                    else:
-                        modified[item_name] = 0
+            query = {'ancestor':cat_id}
+            list = searchItem(query)
+            for l in list:
+                if not l.name in modified:
+                    item_id = item_key(user_id+'/'+name, l.name)
+                    q_vote = {'ancestor':item_id}
+                    deleteVote(q_vote)
+                    q_vote = {'unvoted_item': l}
+                    deleteVote(q_vote)
+                    q_comment = {'ancestor':item_id}
+                    deleteComment(q_comment)
+                    q_item = {'ancestor':cat_id, 'name':l.name}
+                    deleteItem(q_item)
+            
+            blob_reader.close()
+            self.redirect('/?upload=success&category=a')
 
-                query = {'ancestor':cat_id}
-                list = searchItem(query)
-                for l in list:
-                    if not l.name in modified:
-                        item_id = item_key(user_id+'/'+name, l.name)
-                        q_vote = {'ancestor':item_id}
-                        deleteVote(q_vote)
-                        q_vote = {'unvoted_item': l}
-                        deleteVote(q_vote)
-                        q_comment = {'ancestor':item_id}
-                        deleteComment(q_comment)
-                        q_item = {'ancestor':cat_id, 'name':l.name}
-                        deleteItem(q_item)
-                            
-                blob_reader.close()
-                self.redirect('/?upload=success&category=a')
-
-                #except:
+#except:
 #self.redirect('/?upload_failure=true&categories=a')
 
-class ExportHandler(webapp2.RequestHandler):    
+class ExportHandler(webapp2.RequestHandler):
     def get(self):
         cat_name = self.request.get('cat_name')
         owner_id = self.request.get('owner')
@@ -355,16 +359,16 @@ class ExportHandler(webapp2.RequestHandler):
         cat_id = cat_key(owner_id, cat_name)
         query = {'ancestor' : cat_id}
         list = searchItem(query)
-    
+        
         # make items into xml
         top = ElementTree.Element('top')
-    
+        
         comment = ElementTree.Comment('Generated automatically by 1010Ling.')
         top.append(comment)
-    
+        
         child = SubElement(top, 'NAME')
         child.text = cat_name
-    
+        
         for item in list:
             i = SubElement(top, 'ITEM')
             name = SubElement(i, 'NAME')
@@ -373,19 +377,19 @@ class ExportHandler(webapp2.RequestHandler):
             create_time.text = item.create_time.ctime()
             pic = SubElement(i, 'PICTURE')
             pic.text = pickle.dumps(item.picture)
-    
+        
         data = prettify(top)
-    
+        
         # Create the file
         file_name = files.blobstore.create(mime_type='application/octet-stream')
-    
+        
         # Open the file and write to it
         with files.open(file_name, 'a') as f:
             f.write(data)
-    
+        
         # Finalize the file. Do this before attempting to read it.
         files.finalize(file_name)
-    
+        
         # Get the file's blob key
         blob_key = files.blobstore.get_blob_key(file_name)
         self.redirect('/export/%s' % blob_key)
@@ -397,7 +401,7 @@ class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
         else:
             name = str(file_key)
             self.send_blob(file_key, save_as=name+'.xml')
-            #self.response.out.write(file_key)
+#self.response.out.write(file_key)
 
 class AddComment(webapp2.RequestHandler):
     def post(self):
@@ -413,7 +417,7 @@ class AddComment(webapp2.RequestHandler):
         item_id = item_key(owner_id+'/'+cat_name, item_name)
         query = {'ancestor':item_id, 'commenter_id':user_id}
         if searchComment(query).count() == 0:
-            insertComment(user_name, user_id, item_id, content)        
+            insertComment(user_name, user_id, item_id, content)
             self.redirect('/?item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
         else:
             self.redirect('/?fail=true&item_name=' + item_name + '&' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':owner_id}))
@@ -434,7 +438,7 @@ class RemoveItem(webapp2.RequestHandler):
         deleteComment(q_comment)
         q_item = {'ancestor':cat_id, 'name':item_name}
         deleteItem(q_item)
-
+        
         self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
 
 class Search(webapp2.RequestHandler):
@@ -458,7 +462,75 @@ class BaseHandler(webapp2.RequestHandler):
     def session(self):
         # Returns a session using the default cookie key.
         return self.session_store.get_session()
-       
+
+class ViewCategory(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        if not self.request.get('id'):
+            query = {}
+            list = memcache.get('cat_all')
+            if list is None:
+                list = searchCat(query)
+                memcache.add('cat_all', list, 60)
+            
+            template_values['categories'] = list
+        
+        elif self.request.get('id'):
+            id = self.request.get('id')
+            if not self.request.get('name'):
+                list = memcache.get('cat_'+id)
+                if list is None:
+                    query = {'ancestor' : user_key(id)}
+                    list = searchCat(query)
+                    memcache.add('cat_'+id, list, 60)
+                
+                template_values['categories'] = list
+            
+            elif self.request.get('name'):
+                name = self.request.get('name')
+                list = memcache.get('cat_'+id+'_'+name)
+                if list is None:
+                    cat_id = cat_key(id, name)
+                    query = {'ancestor' : cat_id}
+                    list = searchItem(query)
+                    memcache.add('cat_'+id+'_'+name, list, 60)
+                
+                template_values['items'] = list
+                template_values['cat_name'] = name
+                template_values['owner'] = id
+                a = {}
+                b = {}
+                i = 0
+                for item in list:
+                    a[item.name] = i
+                    i = i + 1
+                    b[item.name] = item.key()
+                template_values['id'] = a
+                template_values['key'] = b
+    
+        if self.request.get('add_fail'):
+            template_values['add_fail'] = True
+
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+            username = user.nickname()
+            user_id = user.user_id()
+            
+            template_values['username'] = memcache.get('username')
+            template_values['user_id'] = memcache.get('user_id')
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
+
+        template = jinja_environment.get_template('view/category_view.html')
+        self.response.out.write(template.render(template_values))
+
+#self.response.out.write(list)
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -478,58 +550,11 @@ class Dispatcher(webapp2.RequestHandler):
                 memcache.add('user_id', user_id, 3600)
             else:
                 memcache.get('username')
-                memcache.get('user_id')    
-                    
+                memcache.get('user_id')
+        
             if self.request.arguments():
-                if self.request.get('category'):
-                    if self.request.get('category')=='all':
-                        query = {}
-                        if memcache.get('cat_all'):
-                            list = memcache.get('cat_all')
-                        else:
-                            list = searchCat(query)
-                            memcache.add('cat_all', list, 60)
-                        
-                        template_values['view'] = True
-    
-                    else:
-                        query = { 'ancestor' :user_key(user_id) }
-                        list = searchCat(query)
-                        upload_url = blobstore.create_upload_url('/import')
-                        template_values['import'] = upload_url
-                        template_values['view'] = False
-                        if self.request.get('upload'):
-                            template_values['upload'] = self.request.get('upload')
-                        if self.request.get('add'):
-                            template_values['add'] = self.request.get('add')
                 
-                    template_values['categories'] = list
-                
-                elif self.request.get('cat_name'):
-                    cat_name = self.request.get('cat_name')
-                    owner_id = self.request.get('owner')
-                    cat_id = cat_key(owner_id, cat_name)
-                    query = {'ancestor' : cat_id}
-                    list = searchItem(query)
-                    template_values['items'] = list.run()
-                    template_values['cat_name'] = cat_name
-                    template_values['owner'] = owner_id
-                    
-                    
-                    a = {}
-                    b = {}
-                    i = 0
-                    for item in list:
-                        a[item.name] = i
-                        i = i + 1
-                        b[item.name] = item.key()
-                    template_values['id'] = a
-                    template_values['key'] = b
-                    
-                    if self.request.get('add_fail'):
-                        template_values['add_fail'] = True
-                
-                elif self.request.get('item_name'):
+                if self.request.get('item_name'):
                     cat_name = self.request.get('parent')
                     owner_id = self.request.get('owner')
                     cat_id = cat_key(owner_id, cat_name)
@@ -556,14 +581,14 @@ class Dispatcher(webapp2.RequestHandler):
                     else:
                         list = searchCat(query)
                         memcache.add('cat_all', list, 60)
-                            
+        
                     template_values['vote_cat'] = list
                     template_values['now'] = datetime.datetime.today()
                     if self.request.get('not_enough'):
                         template_values['not_enough'] = self.request.get('not_enough')
                         template_values['cat'] = self.request.get('cat')
                         template_values['owner'] = self.request.get('owner')
-                
+
                 elif self.request.get('vote_cat'):
                     owner_id = self.request.get('owner')
                     vote_cat = self.request.get('vote_cat')
@@ -576,9 +601,9 @@ class Dispatcher(webapp2.RequestHandler):
                     query={'ancestor':cat_id}
                     count = searchItem(query).count()
                     """
-                    if memcache.get('count_'+owner_id+'_'+vote_cat):
+                        if memcache.get('count_'+owner_id+'_'+vote_cat):
                         count = memcache.get('count_'+owner_id+'_'+vote_cat)
-                    else:
+                        else:
                         count = searchItem(query).count()
                         memcache.add('count_'+owner_id+'_'+vote_cat, count, 60)
                         """
@@ -592,40 +617,40 @@ class Dispatcher(webapp2.RequestHandler):
                             query = {'ancestor' : cat_id, 'name' : self.request.get('item')}
                             item1 = searchItem(query).get()
                             #self.response.out.write(item1)
-                
+                            
                             item2 = pickRandom(cat_id)
                             while (not item2) or (item2 and item2.name == item1.name) or (item2.name == skip_item):
                                 item2 = pickRandom(cat_id)
-            
+
                     elif self.request.get('prev1'):
                         if count > 2:
-                            prev1 = self.request.get('prev1')                        
-                            prev2 = self.request.get('prev2')                        
+                            prev1 = self.request.get('prev1')
+                            prev2 = self.request.get('prev2')
                             template_values['prev1'] = prev1
                             template_values['prev2'] = prev2
                             #item1 = 'a'
                             #item2 = 'b'
-                        
+                            
                             item1 = pickRandom(cat_id)
-                        
+                            
                             while (not item1) or (item1 and item1.name == prev1):
                                 item1 = pickRandom(cat_id)
-                        
+                            
                             item2 = pickRandom(cat_id)
                             
                             while (not item2) or (item2 and item2.name == item1.name) or (item2 and item2.name == prev1):
                                 item2 = pickRandom(cat_id)
-        
+                    
                     else:
                         item1 = pickRandom(cat_id)
                         item2 = pickRandom(cat_id)
                         
                         while not item1:
                             item1 = pickRandom(cat_id)
-                                                    
+                        
                         while (not item2) or (item2 and item2.name == item1.name):
                             item2 = pickRandom(cat_id)
-                    
+
                     if count > 2:
                         
                         if not_skip == '1':
@@ -636,8 +661,8 @@ class Dispatcher(webapp2.RequestHandler):
                             template_values['vote_key'] = [item2.key(), item1.key()]
                     template_values['owner'] = owner_id
                     template_values['cat'] = vote_cat
-                    
 
+                
                 elif self.request.get('stats_cat'):
                     owner_id = self.request.get('owner')
                     stats_cat = self.request.get('stats_cat')
@@ -647,7 +672,7 @@ class Dispatcher(webapp2.RequestHandler):
                     results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
                     template_values['results'] = results_sorted
                     template_values['unvoted'] = unvoted
-    
+
                 elif self.request.get('stats')=='all':
                     query = {}
                     if memcache.get('cat_all'):
@@ -655,12 +680,12 @@ class Dispatcher(webapp2.RequestHandler):
                     else:
                         list = searchCat(query)
                         memcache.add('cat_all', list, 60)
-                    
+
                     template_values['stats_cat'] = list.run()
-    
+
                 elif self.request.get('upload_failure'):
                     template_values['upload_failure'] = True
-    
+
                 elif self.request.get('query'):
                     query_name = self.request.get('query')
                     q_cat = {'name':query_name}
@@ -672,7 +697,7 @@ class Dispatcher(webapp2.RequestHandler):
                     template_values['query_item'] = item_list
                     template_values['count_cat'] = cat_list.count()
                     template_values['count_item'] = item_list.count()
-    
+                    
                     a = {}
                     b = {}
                     i = 0
@@ -682,24 +707,24 @@ class Dispatcher(webapp2.RequestHandler):
                         b[item.name] = item.key()
                     template_values['id'] = a
                     template_values['key'] = b
-        
+
             else:
                 template_values['home'] = True
-
+        
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
-        
+
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
-                
-        
-        template = jinja_environment.get_template('index.html')
+
+
+        template = jinja_environment.get_template('view/index.html')
         self.response.out.write(template.render(template_values))
 
 config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': 'my-super-secret-key',
 }
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search)], debug=True, config=config)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory)], debug=True, config=config)
