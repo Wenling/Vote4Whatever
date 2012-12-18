@@ -396,7 +396,6 @@ class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
             self.error(404)
         else:
             self.send_blob(file_key)
-            db.delete(file_key)
             #self.response.out.write(file_key)
 
 class AddComment(webapp2.RequestHandler):
