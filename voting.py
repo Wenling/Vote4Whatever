@@ -224,7 +224,6 @@ class AddCat(webapp2.RequestHandler):
 
 class AddItem(webapp2.RequestHandler):
     def post(self):
-        template_values = {}
         user_id = users.get_current_user().user_id()
         #self.response.out.write(user_id)
         cat_name = self.request.get('cat_name')
@@ -234,20 +233,17 @@ class AddItem(webapp2.RequestHandler):
             cat_id = cat_key(owner_id, cat_name)
             item_name = self.request.get('item_name')
             pic_dir = self.request.get('picture')
-            
-            if item_name:
-                query = {'ancestor': cat_id, 'name': item_name}
-                list = searchItem(query)
-                num = list.count()
-                if num == 0:                
-                    item = insertItem(cat_id, item_name, pic_dir, str(num))
+            query = {'ancestor':cat_id, 'name':item_name}
+            if searchItem(query).count() == 0:
+                query = {'ancestor': cat_id}
+                num = searchItem(query).count()
+                item = insertItem(cat_id, item_name, pic_dir, str(num))
                 #self.response.out.write(item.name)               
                     
-                    self.redirect('/category?id='+user_id+'&name='+cat_name)
+                self.redirect('/?cat_name=' + cat_name + '&owner=' + owner_id)
                 #self.redirect('/?' + urllib.urlencode({'parent': cat_name}) + '&' + urllib.urlencode({'owner':user_id}) + '&'+ urllib.urlencode({'item_name': item_name}))
             else:
-                
-                self.redirect('/category?id='+user_id+'&name='+cat_name+'&add_fail=True')
+                self.redirect('/?add_fail=true&cat_name=' + cat_name + '&owner=' + owner_id)
 
 class Image(webapp2.RequestHandler):
     def get(self):
@@ -462,75 +458,7 @@ class BaseHandler(webapp2.RequestHandler):
     def session(self):
         # Returns a session using the default cookie key.
         return self.session_store.get_session()
-
-class ViewCategory(webapp2.RequestHandler):
-    def get(self):
-        template_values = {}
-        if not self.request.get('id'):
-            query = {}
-            list = memcache.get('cat_all')
-            if list is None:
-                list = searchCat(query)
-                memcache.add('cat_all', list, 60)
-    
-            template_values['categories'] = list
-
-        elif self.request.get('id'):
-            id = self.request.get('id')
-            if not self.request.get('name'):                
-                list = memcache.get('cat_'+id)
-                if list is None:
-                    query = {'ancestor' : user_key(id)}
-                    list = searchCat(query)
-                    memcache.add('cat_'+id, list, 60)
-        
-                template_values['categories'] = list
-
-            elif self.request.get('name'):
-                name = self.request.get('name')
-                list = memcache.get('cat_'+id+'_'+name)
-                if list is None:
-                    cat_id = cat_key(id, name)
-                    query = {'ancestor' : cat_id}
-                    list = searchItem(query)
-                    memcache.add('cat_'+id+'_'+name, list, 60)
-                
-                template_values['items'] = list
-                template_values['cat_name'] = name
-                template_values['owner'] = id
-                a = {}
-                b = {}
-                i = 0
-                for item in list:
-                    a[item.name] = i
-                    i = i + 1
-                    b[item.name] = item.key()
-                template_values['id'] = a
-                template_values['key'] = b
-
-        if self.request.get('add_fail'):
-            template_values['add_fail'] = True
-                    
-        user = users.get_current_user()
-        if user:
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-            username = user.nickname()
-            user_id = user.user_id()
-        
-            template_values['username'] = memcache.get('username')
-            template_values['user_id'] = memcache.get('user_id')
-        else:
-            url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
-        
-        template_values['url'] = url
-        template_values['url_linktext'] = url_linktext
-
-        template = jinja_environment.get_template('view/category_view.html')
-        self.response.out.write(template.render(template_values))
-            
-#self.response.out.write(list)
+       
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -553,8 +481,55 @@ class Dispatcher(webapp2.RequestHandler):
                 memcache.get('user_id')    
                     
             if self.request.arguments():
-                                
-                if self.request.get('item_name'):
+                if self.request.get('category'):
+                    if self.request.get('category')=='all':
+                        query = {}
+                        if memcache.get('cat_all'):
+                            list = memcache.get('cat_all')
+                        else:
+                            list = searchCat(query)
+                            memcache.add('cat_all', list, 60)
+                        
+                        template_values['view'] = True
+    
+                    else:
+                        query = { 'ancestor' :user_key(user_id) }
+                        list = searchCat(query)
+                        upload_url = blobstore.create_upload_url('/import')
+                        template_values['import'] = upload_url
+                        template_values['view'] = False
+                        if self.request.get('upload'):
+                            template_values['upload'] = self.request.get('upload')
+                        if self.request.get('add'):
+                            template_values['add'] = self.request.get('add')
+                
+                    template_values['categories'] = list
+                
+                elif self.request.get('cat_name'):
+                    cat_name = self.request.get('cat_name')
+                    owner_id = self.request.get('owner')
+                    cat_id = cat_key(owner_id, cat_name)
+                    query = {'ancestor' : cat_id}
+                    list = searchItem(query)
+                    template_values['items'] = list.run()
+                    template_values['cat_name'] = cat_name
+                    template_values['owner'] = owner_id
+                    
+                    
+                    a = {}
+                    b = {}
+                    i = 0
+                    for item in list:
+                        a[item.name] = i
+                        i = i + 1
+                        b[item.name] = item.key()
+                    template_values['id'] = a
+                    template_values['key'] = b
+                    
+                    if self.request.get('add_fail'):
+                        template_values['add_fail'] = True
+                
+                elif self.request.get('item_name'):
                     cat_name = self.request.get('parent')
                     owner_id = self.request.get('owner')
                     cat_id = cat_key(owner_id, cat_name)
@@ -720,11 +695,11 @@ class Dispatcher(webapp2.RequestHandler):
         template_values['url_linktext'] = url_linktext
                 
         
-        template = jinja_environment.get_template('view/index.html')
+        template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
 
 config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': 'my-super-secret-key',
 }
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory)], debug=True, config=config)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search)], debug=True, config=config)

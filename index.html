@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-    {% block head %}
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link media="screen" rel="stylesheet" href="/css/bootstrap.min.css" />
@@ -10,23 +9,21 @@
             <script src="http://code.jquery.com/jquery-latest.js"></script>
             <script type="text/javascript" src="/js/bootstrap.min.js"></script>
             <script type="text/javascript" src="/js/bootstrap-datepicker.js"></script>
-    {% endblock %}
     </head>
     <body>
-        {% block header %}
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <a class="brand" href="/">Home</a>
                 <ul class="nav">
-                    {% if username %}
                     <li class="active"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>{{ username }}</b><b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a tabindex="-1" href="/category">Explore All Categories</a></li>
-                            <li><a tabindex="-1" href="/category?id={{user_id}}">Edit My Categories</a></li>
+                            <li><a tabindex="-1" href="/?category=a">View My Categories</a></li>
+                            <li><a tabindex="-1" href="/?category=all">Explore All Categories</a></li>
                             <li class="divider"></li>
                             <li><a tabindex="-1" href="/">Home</a></li>
                         </ul>
                     </li>
+                    {% if username %}
                     <li><a href="/?vote_cat=all">Vote</a></li>
                     <li><a href="/?stats=all">Voting Stats</a></li>
                     {% endif %}
@@ -47,7 +44,6 @@
                 <h2>Vote 4 Whatever <small>Vote without thinking.</small></h2>
             </div>
         </header>
-        {% endblock %}
         <div class="container">
             {% if vote_cat %}
             <div class="row">
@@ -252,15 +248,15 @@
                     <div class="span3 offset9">
                         <a class="btn btn-info"href="/export?cat_name={{cat_name}}&owner={{owner}}">Export <b>{{cat_name}}</b> as XML</a>
                     </div>
-                </div>                
+                </div>
                 
+                {% if owner == user_id %}
+                {% if add_fail %}
+                <div class="alert alert-error">
+                    You have added this one before.
+                </div>
+                {% endif %}
                 <div class="span3">
-                    {% if owner == user_id %}
-                    {% if add_fail %}
-                    <div class="alert alert-error">
-                        Fail to add item.
-                    </div>
-                    {% endif %}
                     <form action="/addItem" method="post" class="bs-docs-example" enctype="multipart/form-data">
                         <legend>Add a new one:</legend>
                         <label>Item Name:</label><input type="text" name="item_name">
@@ -536,7 +532,6 @@
         {% endif %}
         
         <footer class="footer">
-            {% block footer %}
             <div class="container">
                 <ul class="footer-links">
                     <li><a href="http://1010ling.blogspot.com" target="_blank">Blog</a></li>
@@ -544,7 +539,6 @@
                     <li><a href="http://www.linkedin.com/profile/view?id=140036254" target="_blank">LinkedIn</a></li>
                 </ul>
             </div>
-            {% endblock %}
         </footer>
         
     </body>
