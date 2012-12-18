@@ -21,7 +21,6 @@
 		AA389EFF16811A9B00F5BE56 /* glyphicons-halflings-white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings-white.png"; sourceTree = "<group>"; };
 		AA389F0016811A9B00F5BE56 /* glyphicons-halflings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings.png"; sourceTree = "<group>"; };
 		AA389F0116811A9B00F5BE56 /* ny.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ny.jpg; sourceTree = "<group>"; };
-		AA389F0216811A9C00F5BE56 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = index.html; path = ../index.html; sourceTree = "<group>"; };
 		AA389F0316811A9C00F5BE56 /* index.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = index.yaml; path = ../index.yaml; sourceTree = "<group>"; };
 		AA389F0516811A9C00F5BE56 /* bootstrap-datepicker.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "bootstrap-datepicker.js"; sourceTree = "<group>"; };
 		AA389F0616811A9C00F5BE56 /* bootstrap.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.js; sourceTree = "<group>"; };
@@ -37,6 +36,7 @@
 		AA389F1316811A9C00F5BE56 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
 		AA389F1716811A9C00F5BE56 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA389F1816811A9C00F5BE56 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
+		AA389F1916811BD500F5BE56 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -123,7 +123,7 @@
 		AA389F1016811A9C00F5BE56 /* view */ = {
 			isa = PBXGroup;
 			children = (
-				AA389F0216811A9C00F5BE56 /* index.html */,
+				AA389F1916811BD500F5BE56 /* index.html */,
 				AA389F1116811A9C00F5BE56 /* category_view.html */,
 			);
 			name = view;

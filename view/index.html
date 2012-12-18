@@ -49,39 +49,8 @@
         </header>
         {% endblock %}
         <div class="container">
-            {% if vote_cat %}
-            <div class="row">
-                <div class="span9">
-                    {% if not_enough %}
-                    <div class="alert alert-error">
-                        <center><p>There are not enough items for you to vote under this category.<p>
-                            {% if owner == user_id %}
-                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
-                            {% endif %}
-                        </center>
-                    </div>
-                    {% else %}
-                    <table class="table table-hover" id="Vote_Categories">
-                        <thead>
-                            <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
-                        </thead>
-                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
-                        {% for cat in vote_cat %}
-                        {% if cat.name %}
-                        <tr><td>
-                            {% if cat.expiration_time > now %}
-                            <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
-                            {% else %}
-                            Vote
-                            {% endif %}
-                        </td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
-                        {% endif %}
-                        {% endfor %}
-                    </table>
-                    {% endif %}
-                </div>
-            </div>
-            {% elif vote %}
+            
+            {% if vote %}
             <div class="row">
                 <div class="span8 offset1">
                     {% if prev1 %}
@@ -148,6 +117,20 @@
                 </div>
             </div>
             {% elif categories %}
+            <div class="row">
+                <div class="span9">
+                    {% if not_enough %}
+                    <div class="alert alert-error">
+                        <center><p>There are not enough items for you to vote under this category.<p>
+                            {% if owner == user_id %}
+                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                            {% endif %}
+                        </center>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
             <div class="row">
                 {% if view==False %}
                 <div class="span4">
@@ -229,23 +212,33 @@
                         {% endif %}
                         <table class="table table-hover" id="Categories">
                             <thead>
-                                <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                                <th></th><th></th><th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
                             </thead>
                             <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
                             {% for cat in categories %}
                             {% if cat.name %}
                             <tr><td>
                                 {% if view==False %}
-                                <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                                <a href="/category?name={{cat.name}}&id={{cat.owner_id}}">Edit</a>
                                 {% else %}
-                                <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                                <a href="/category?name={{cat.name}}&id={{cat.owner_id}}">View</a>
                                 {% endif %}
-                            </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                            </td>
+                                <td>
+                                    {% if cat.expiration_time > now %}
+                                    <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
+                                    {% else %}
+                                    Vote
+                                    {% endif %}
+                                </td>
+                                <td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td>
+                                <td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
                             {% endif %}
                             {% endfor %}
                         </table>
                     </div>
                 </div>
+            </div>
                 {% elif items %}
                 <div class="row">
                     <div class="row">
@@ -264,16 +257,16 @@
                         <form action="/addItem" method="post" class="bs-docs-example" enctype="multipart/form-data">
                             <legend>Add a new one:</legend>
                             <label>Item Name:</label><input type="text" name="item_name">
-                                <label>Image: </label><input type="file" name="picture">
-                                    <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
-                                        <input type="hidden" name = 'owner' value="{{ owner }}">
-                                            <hr>
-                                            <div class="controls">
-                                                <input class="btn btn-primary" type="submit" value="Add Item">
-                                                    <input class="btn" type="reset" value="Reset">
-                                                        </div>
-                                            
-                                            </form>
+                            <label>Image: </label><input type="file" name="picture">
+                            <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
+                            <input type="hidden" name = 'owner' value="{{ owner }}">
+                            <hr>
+                            <div class="controls">
+                                <input class="btn btn-primary" type="submit" value="Add Item">
+                                <input class="btn" type="reset" value="Reset">
+                            </div>
+                                
+                        </form>
                     </div>
                     <div class="span9">
                         {% else %}
@@ -325,6 +318,7 @@
                             </table>
                         </div>
                     </div>
+                </div>
                     {% elif item %}
                     <div class="row">
                         <div class="span4">
@@ -401,22 +395,7 @@
                         </table>
                     </div>
                 </div>
-                {% elif stats_cat %}
-                <div class="row">
-                    <div class="span9">
-                        <table class="table table-hover" id="Category">
-                            <thead>
-                                <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
-                            </thead>
-                            <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
-                            {% for cat in stats_cat %}
-                            {% if cat.name %}
-                            <tr><td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
-                            {% endif %}
-                            {% endfor %}
-                        </table>
-                    </div>
-                </div>
+                
                 {% elif query_cat or query_item %}
                 <div class="row">
                     <div class="span3">

@@ -526,8 +526,9 @@ class ViewCategory(webapp2.RequestHandler):
 
         template_values['url'] = url
         template_values['url_linktext'] = url_linktext
+        template_values['now'] = datetime.datetime.today()
 
-        template = jinja_environment.get_template('view/category_view.html')
+        template = jinja_environment.get_template('view/index.html')
         self.response.out.write(template.render(template_values))
 
 #self.response.out.write(list)
