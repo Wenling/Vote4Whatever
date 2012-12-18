@@ -395,7 +395,8 @@ class ExportCat(blobstore_handlers.BlobstoreDownloadHandler):
         if not blobstore.get(file_key):
             self.error(404)
         else:
-            self.send_blob(file_key)
+            name = str(file_key)
+            self.send_blob(file_key, save_as=name+'.xml')
             #self.response.out.write(file_key)
 
 class AddComment(webapp2.RequestHandler):
