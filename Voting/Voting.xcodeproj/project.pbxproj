@@ -8,6 +8,12 @@
 
 /* Begin PBXFileReference section */
 		AA0F2A3E167B0BB0000D0694 /* cat.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = cat.xml; sourceTree = "<group>"; };
+<<<<<<< HEAD
+=======
+		AA10F68C1680302500019B80 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		AA10F68F1680307900019B80 /* category_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = category_view.html; sourceTree = "<group>"; };
+		AA10F6901680438800019B80 /* setting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setting.py; sourceTree = "<group>"; };
+>>>>>>> origin/master
 		AA16FF381677E155008F2A42 /* app.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = app.yaml; path = ../app.yaml; sourceTree = "<group>"; };
 		AA16FF3A1677E155008F2A42 /* bootstrap-responsive.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.css"; sourceTree = "<group>"; };
 		AA16FF3B1677E155008F2A42 /* bootstrap-responsive.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "bootstrap-responsive.min.css"; sourceTree = "<group>"; };
@@ -43,6 +49,19 @@
 			path = ../file;
 			sourceTree = "<group>";
 		};
+<<<<<<< HEAD
+=======
+		AA10F68B1680302500019B80 /* view */ = {
+			isa = PBXGroup;
+			children = (
+				AA10F68C1680302500019B80 /* index.html */,
+				AA10F68F1680307900019B80 /* category_view.html */,
+			);
+			name = view;
+			path = ../view;
+			sourceTree = "<group>";
+		};
+>>>>>>> origin/master
 		AA16FF2F1677E142008F2A42 = {
 			isa = PBXGroup;
 			children = (
