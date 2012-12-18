@@ -27,7 +27,7 @@
                             <li><a tabindex="-1" href="/">Home</a></li>
                         </ul>
                     </li>
-                    <li><a href="/category">Vote</a></li>
+                    <li><a href="/?vote_cat=all">Vote</a></li>
                     <li><a href="/?stats=all">Voting Stats</a></li>
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
@@ -49,8 +49,39 @@
         </header>
         {% endblock %}
         <div class="container">
-            
-            {% if vote %}
+            {% if vote_cat %}
+            <div class="row">
+                <div class="span9">
+                    {% if not_enough %}
+                    <div class="alert alert-error">
+                        <center><p>There are not enough items for you to vote under this category.<p>
+                            {% if owner == user_id %}
+                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                            {% endif %}
+                        </center>
+                    </div>
+                    {% else %}
+                    <table class="table table-hover" id="Vote_Categories">
+                        <thead>
+                            <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                        </thead>
+                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                        {% for cat in vote_cat %}
+                        {% if cat.name %}
+                        <tr><td>
+                            {% if cat.expiration_time > now %}
+                            <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
+                            {% else %}
+                            Vote
+                            {% endif %}
+                        </td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif vote %}
             <div class="row">
                 <div class="span8 offset1">
                     {% if prev1 %}
@@ -116,7 +147,105 @@
                     </div>
                 </div>
             </div>
-            
+            {% elif categories %}
+            <div class="row">
+                {% if view==False %}
+                <div class="span4">
+                    <ul class="nav nav-tabs" id="myTab">
+                        <li class="active"><a href="#addCat">Add a Category</a></li>
+                        <li><a href="#importCat">Import a Category</a></li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        {% if upload=='fail' %}
+                        <div class="alert alert-error">
+                            Upload failed..
+                        </div>
+                        {% elif upload=='success' %}
+                        <div class="alert alert-success">
+                            Upload succeeded!
+                        </div>'
+                        {% endif %}
+                        {% if add=='fail' %}
+                        <div class="alert alert-error">
+                            You have added this one before.
+                        </div>
+                        {% elif add=='success' %}
+                        <div class="alert alert-success">
+                            Successfully added!
+                        </div>
+                        {% endif %}
+                        <script>
+                            $(function(){                              
+                              var startDate = new Date()
+                              window.prettyPrint && prettyPrint();
+                              $('#dp2').datepicker()
+                              .on('changeDate', function(ev){
+                                  if (ev.date.valueOf() < startDate.valueOf()){
+                                  //alert(startDate.valueOf())
+                                  //alert(ev.date.valueOf())
+                                  $('#alert').show();
+                                  } else {
+                                  $('#alert').hide();
+                                  startDate = new Date(ev.date);
+                                  $('#startDate').text($('#dp2').data('date'));
+                                  }
+                                  $('#dp2').datepicker('hide');
+                                  });
+                              });
+                            </script>
+                        <div class="tab-pane active" id="addCat">
+                            <form action="/addCat" method="post">
+                               
+                                Category Name:<input type="text" name="cat_name">
+                                Expiration Time: <input type="text" name="expiration_time" id="dp2">
+                                <div class="alert alert-error" id="alert" style="display:none;">
+                                    The start date can not be earlier than the today date.
+                                </div>
+                                <input class="btn btn-primary" type="submit" value="Add Category">
+                                <input class="btn" type="reset" value="Reset">
+                            </form>
+                        </div>                        
+                        <div class="tab-pane" id="importCat">
+                            <form action={{import}} method="post" enctype="multipart/form-data">
+                                <legend>Import Category directly from here: <br/><input type="file" name="cat_path"></legend>
+                                <input class="btn btn-primary" type="submit" value="Add Category">
+                                <input class="btn" type="reset" value="Reset">
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        $('#myTab a').click(function (e) {
+                                            e.preventDefault();
+                                            $(this).tab('show');
+                                            })
+                    </script>
+                                        
+                </div>
+                <div class="span8">
+                {% else %}
+                <div class = "span9">
+                {% endif %}
+                    <table class="table table-hover" id="Categories">
+                        <thead>
+                            <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                        </thead>
+                        <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                        {% for cat in categories %}
+                        {% if cat.name %}
+                        <tr><td>
+                            {% if view==False %}
+                            <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">Edit</a>
+                            {% else %}
+                            <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
+                            {% endif %}
+                        </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
             {% elif items %}
             <div class="row">
                 <div class="row">
@@ -272,7 +401,22 @@
                 </table>
             </div>
         </div>
-        
+        {% elif stats_cat %}
+        <div class="row">
+            <div class="span9">
+                <table class="table table-hover" id="Category">
+                    <thead>
+                        <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
+                    </thead>
+                    <!--{% if categories %}<tr><td span=4>aaa</td></tr>{% endif %} -->
+                    {% for cat in stats_cat %}
+                    {% if cat.name %}
+                    <tr><td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td><td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
         {% elif query_cat or query_item %}
                 <div class="row">
                     <div class="span3">
