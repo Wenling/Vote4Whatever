@@ -231,7 +231,7 @@
                                     Vote
                                     {% endif %}
                                 </td>
-                                <td><a href="/?stats_cat={{cat.name}}&owner={{cat.owner_id}}">See Results</a></td>
+                                <td><a href="/stats_cat?name={{cat.name}}&id={{cat.owner_id}}">See Results</a></td>
                                 <td>{{ cat.name }}</td><td>{{ cat.owner }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
                             {% endif %}
                             {% endfor %}

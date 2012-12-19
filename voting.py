@@ -9,7 +9,6 @@ import pickle
 import webapp2
 import test
 
-from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.api import images
 from google.appengine.ext import blobstore
@@ -22,146 +21,10 @@ import jinja2
 import xml.dom.minidom
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment
-import model
+from model import *
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
-class User(db.Model):
-    user_id = db.StringProperty()
-    user_name = db.StringProperty()
-
-#category has ancestor user
-class Category(db.Model):
-    owner = db.StringProperty()
-    owner_id = db.StringProperty()
-    name = db.CategoryProperty()
-    create_time = db.DateTimeProperty(auto_now_add=True)
-    expiration_time = db.DateTimeProperty()
-
-#item has ancestor category
-class Item(db.Model):
-    #category = db.Key()
-    name = db.StringProperty()
-    create_time = db.DateTimeProperty(auto_now_add=True)
-    picture = db.BlobProperty()
-
-#vote has ancestor item
-class Vote(db.Model):
-    voter = db.StringProperty()
-    unvoted_item = db.ReferenceProperty()
-    #favored = db.BooleanProperty()
-    vote_time = db.DateTimeProperty(auto_now_add=True)
-
-#comment has ancestor item
-class Comment(db.Model):
-    commenter_id = db.StringProperty()
-    commenter = db.StringProperty()
-    create_time = db.DateTimeProperty(auto_now_add=True)
-    content = db.StringProperty()
-
-"""Used to retrieve the keys of the model given a user's information"""
-def user_key(user_id=None):
-    return db.Key.from_path('UserId', user_id or 'default_user')
-
-def cat_key(user_id=None, cat_name=None):
-    return db.Key.from_path('UserId', user_id, 'CatId', cat_name)
-
-def item_key(cat_id=None, item_name=None):
-    return db.Key.from_path('CatId', cat_id, 'ItemId', item_name)
-
-"""These functions are the models' manipulations"""
-#insert a new category
-def insertCat(user_id, user_name, cat_name, expiration_time):
-    ancestor = user_key(user_id)
-    time_str = expiration_time.split('/')
-    cat_expt = datetime.datetime(int(time_str[2]), int(time_str[0]), int(time_str[1]), 1)
-    cat = Category(parent=ancestor, owner=user_name, owner_id=user_id, key_name=cat_name, name=cat_name, expiration_time=cat_expt)
-    cat.put()
-    return cat
-
-#list all categories under the user
-def searchCat(query):
-    q = Category.all()
-    for k in query:
-        if k=='ancestor':
-            q.ancestor(query[k])
-        else:
-            q.filter(k, query[k])
-    return q
-
-#insert a new item, will check for the user is valid to add item in that category
-def insertItem(cat_id, item_name, pic_dir, key_name):
-    randnum = random.random()
-    item = Item(parent=cat_id, key_name=key_name, name=item_name, rand=randnum)
-    if pic_dir:
-        item.picture = db.Blob(pic_dir)
-    item.put()
-    return item
-
-#list all items under the category
-def searchItem(query):
-    q = Item.all()
-    for k in query:
-        if k=='ancestor':
-            q.ancestor(query[k])
-        elif k=='rand':
-            q.filter('Item.rand >=', query[k])
-        else:
-            q.filter(k, query[k])
-    return q
-
-#insert a new vote
-def insertVote(voter, voted_item_id, unvoted_item):
-    vote = Vote(parent=voted_item_id, unvoted_item=unvoted_item, voter=voter)
-    vote.put()
-    return vote
-
-#list all votes under the item
-def searchVote(query):
-    q = Vote.all()
-    for k in query:
-        if k=='ancestor':
-            q.ancestor(query[k])
-        else:
-            q.filter(k, query[k])
-    return q
-
-#remove all votes given the item
-def deleteVote(query):
-    list = searchVote(query)
-    if list.count() > 0:
-        db.delete(list)
-
-#remove all comments given the item
-def deleteComment(query):
-    list = searchComment(query)
-    db.delete(list)
-
-#remove the item give id
-def deleteItem(query):
-    list = searchItem(query)
-    db.delete(list)
-
-#remove the category given category id
-def deleteCategory(query):
-    list = searchCat(query)
-    db.delete(list)
-
-#insert comment given item id
-def insertComment(commenter, commenter_id, item_id, content):
-    comment = Comment(parent=item_id, commenter = commenter, commenter_id = commenter_id, content = content)
-    comment.put()
-    return comment
-
-#search comments given query
-def searchComment(query):
-    q = Comment.all()
-    for k in query:
-        if k=='ancestor':
-            q.ancestor(query[k])
-        else:
-            q.filter(k, query[k])
-    return q
 
 #get random items under the category
 def pickRandom(cat_id):
@@ -455,6 +318,22 @@ class BaseHandler(webapp2.RequestHandler):
 class ViewCategory(webapp2.RequestHandler):
     def get(self):
         template_values = {}
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+            username = user.nickname()
+            user_id = user.user_id()
+            
+            template_values['username'] = username
+            template_values['user_id'] = user_id
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+            username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
+    
         if not self.request.get('id'):
             query = {}
             list = memcache.get('cat_all')
@@ -513,21 +392,7 @@ class ViewCategory(webapp2.RequestHandler):
         if self.request.get('not_enough'):
             template_values['not_enough'] = 0
 
-        user = users.get_current_user()
-        if user:
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-            username = user.nickname()
-            user_id = user.user_id()
-            
-            template_values['username'] = memcache.get('username')
-            template_values['user_id'] = memcache.get('user_id')
-        else:
-            url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
-
-        template_values['url'] = url
-        template_values['url_linktext'] = url_linktext
+        
         template_values['now'] = datetime.datetime.today()
 
         template = jinja_environment.get_template('view/index.html')
@@ -550,7 +415,9 @@ class ViewItem(webapp2.RequestHandler):
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-            username = ''   
+            username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
         
     
         item_name = self.request.get('name')
@@ -567,9 +434,7 @@ class ViewItem(webapp2.RequestHandler):
         template_values['cat_name'] = cat_name
         template_values['owner'] = owner_id
         template_values['comments'] = comments
-        template_values['item_key'] = item.key()
-        template_values['url'] = url
-        template_values['url_linktext'] = url_linktext
+        template_values['item_key'] = item.key()        
                   
         if self.request.get('add') == 'fail':
             template_values['add'] = 'fail'
@@ -588,11 +453,12 @@ class Search(webapp2.RequestHandler):
             
             template_values['username'] = username
             template_values['user_id'] = user_id
-
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
 
         query_name = self.request.get('name')
         q_cat = {'name':query_name}
@@ -629,11 +495,12 @@ class NextVote(webapp2.RequestHandler):
             
             template_values['username'] = username
             template_values['user_id'] = user_id
-        
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
 
         id = self.request.get('id')
         vote_cat = self.request.get('category')
@@ -686,14 +553,16 @@ class Skip(webapp2.RequestHandler):
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
             username = user.nickname()
-            user_id = user.user_id()            
+            user_id = user.user_id()
+            
             template_values['username'] = username
             template_values['user_id'] = user_id
-        
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
                 
         id = self.request.get('id')
         vote_cat = self.request.get('category')
@@ -734,13 +603,15 @@ class StatCat(webapp2.RequestHandler):
             url_linktext = 'Logout'
             username = user.nickname()
             user_id = user.user_id()
+            
             template_values['username'] = username
             template_values['user_id'] = user_id
-        
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             username = ''
+        template_values['url'] = url
+        template_values['url_linktext'] = url_linktext
                 
         owner_id = self.request.get('id')
         stats_cat = self.request.get('name')
@@ -793,4 +664,4 @@ config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': 'my-super-secret-key',
 }
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory), ('/item', ViewItem), ('/next_vote', NextVote), ('/skip', Skip), ('/stat_cat', StatCat)], debug=True, config=config)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory), ('/item', ViewItem), ('/next_vote', NextVote), ('/skip', Skip), ('/stats_cat', StatCat)], debug=True, config=config)
