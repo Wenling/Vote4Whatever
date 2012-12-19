@@ -3,15 +3,15 @@
     {% block head %}
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link media="screen" rel="stylesheet" href="/css/bootstrap.min.css" />
-            <link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" />
-            <link rel="stylesheet" href="/css/docs.css" />
-            <link rel="stylesheet" href="/css/datepicker.css" />
-            <script src="http://code.jquery.com/jquery-latest.js"></script>
-            <script type="text/javascript" src="/js/bootstrap.min.js"></script>
-            <script type="text/javascript" src="/js/bootstrap-datepicker.js"></script>
-            {% endblock %}
-            </head>
+        <link media="screen" rel="stylesheet" href="/css/bootstrap.min.css" />
+        <link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" />
+        <link rel="stylesheet" href="/css/docs.css" />
+        <link rel="stylesheet" href="/css/datepicker.css" />
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/js/bootstrap-datepicker.js"></script>
+        {% endblock %}
+    </head>
     <body>
         {% block header %}
         <div class="navbar navbar-inverse navbar-fixed-top">
@@ -27,7 +27,7 @@
                             <li><a tabindex="-1" href="/">Home</a></li>
                         </ul>
                     </li>
-                    <li><a href="/?vote_cat=all">Vote</a></li>
+                    <li><a href="/category">Vote</a></li>
                     <li><a href="/?stats=all">Voting Stats</a></li>
                     {% endif %}
                     <li><a href="{{ url }}">{{ url_linktext }}</a></li>
@@ -35,9 +35,9 @@
                 <div class="row">
                     <div class="span4 offset6">
                         <form class="form-search" action="/search" method="get" style="margin:0 0">
-                            <input type="text" class="input-medium search-query" name="query">
-                                <button type="submit" class="btn">Search</button>
-                                </form>
+                            <input type="text" class="input-medium search-query" name="name">
+                            <button type="submit" class="btn">Search</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -74,15 +74,15 @@
                                             <h3><center>{{vote[0].name}}</center></h3>
                                             <br/>
                                             <center>
-                                                <a href="/vote?item_name={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[1].name}}" class="btn btn-primary">Vote</a>
+                                                <a href="/vote?item_name={{vote[0].name}}&category={{cat}}&id={{owner}}&unvote_item={{vote[1].name}}" class="btn btn-primary">Vote</a>
                                                 {% if not_enough %}
-                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                <a href="/skip?not_skip=2&skip_item={{vote[0].name}}&category={{cat}}&id={{owner}}&item={{vote[1].name}}" class="btn disabled">Skip</a>
                                                 {% else %}
-                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn">Skip</a>
+                                                <a href="/skip?not_skip=2&skip_item={{vote[0].name}}&category={{cat}}&id={{owner}}&item={{vote[1].name}}" class="btn">Skip</a>
                                                 {% endif %}
                                             </center>
                                         </div>
-                                        </div>
+                                    </div>
                             </li>
                             <li class="span4" style="background-color:#f8f8f8;">
                                 <div class="thumbnail">
@@ -95,11 +95,11 @@
                                             <h3><center>{{vote[1].name}}</center></h3>
                                             <br/>
                                             <center>
-                                                <a href="/vote?item_name={{vote[1].name}}&cat_name={{cat}}&owner={{owner}}&unvote_item={{vote[0].name}}" class="btn btn-primary">Vote</a>
+                                                <a href="/vote?item_name={{vote[1].name}}&category={{cat}}&id={{owner}}&unvote_item={{vote[0].name}}" class="btn btn-primary">Vote</a>
                                                 {% if not_enough %}
-                                                <a href="/vote?not_skip=2&skip_item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&item={{vote[1].name}}" class="btn" disabled>Skip</a>
+                                                <a href="/skip?not_skip=2&skip_item={{vote[0].name}}&category={{cat}}&id={{owner}}&item={{vote[1].name}}" class="btn disabled">Skip</a>
                                                 {% else %}
-                                                <a href="/vote?not_skip=1&item={{vote[0].name}}&cat_name={{cat}}&owner={{owner}}&skip_item={{vote[1].name}}" class="btn">Skip</a>
+                                                <a href="/skip?not_skip=1&item={{vote[0].name}}&category={{cat}}&id={{owner}}&skip_item={{vote[1].name}}" class="btn">Skip</a>
                                                 {% endif %}
                                             </center>
                                         </div>
@@ -119,11 +119,11 @@
             {% elif categories %}
             <div class="row">
                 <div class="span9">
-                    {% if not_enough %}
+                    {% if not_enough==0 %}
                     <div class="alert alert-error">
                         <center><p>There are not enough items for you to vote under this category.<p>
                             {% if owner == user_id %}
-                            <p>Try to add more <a href="/?cat_name={{cat}}&owner={{owner}}">items</a> first:</p>
+                            <p>Try to add more <a href="/category?name={{cat}}&id={{owner}}">items</a> first:</p>
                             {% endif %}
                         </center>
                     </div>
@@ -226,7 +226,7 @@
                             </td>
                                 <td>
                                     {% if cat.expiration_time > now %}
-                                    <a href="/?vote_cat={{ cat.name }}&owner={{cat.owner_id}}">Vote</a>
+                                    <a href="/next_vote?category={{ cat.name }}&id={{cat.owner_id}}">Vote</a>
                                     {% else %}
                                     Vote
                                     {% endif %}
@@ -271,7 +271,12 @@
                     <div class="span9">
                         {% else %}
                         <div class="span9">
-                            {% endif %}
+                        {% endif %}
+                        {% if remove == 'success' %}
+                            <div class="alert alert-success">
+                                Item removed.
+                            </div>
+                        {% endif %}
                             <table class="table table-hover" id="Items">
                                 <thead>
                                     {% if user_id == owner %}
@@ -304,7 +309,7 @@
                                             </div>
                                         </div>
                                         {% endif %}
-                                        <a href='/?item_name={{item.name}}&owner={{owner}}&parent={{cat_name}}'>View</a>
+                                        <a href='/item?name={{item.name}}&id={{owner}}&category={{cat_name}}'>View</a>
                                     </td><td>
                                         {% if item.picture %}
                                         <img src="/img?img_id={{key[item.name]}}" style="width: 250px; height: 300px;"></img>
@@ -351,7 +356,7 @@
                                 {% endfor %}
                             </table>
                             {% endif %}
-                            {% if fail %}
+                            {% if add == 'fail' %}
                             <div class="alert alert-error">
                                 You are only allowed to make one comment on every item.
                             </div>
@@ -359,13 +364,13 @@
                             <b>Leave your thoughts here:</b>
                             <form action="/addComment" method="post">
                                 <legend><textarea name="content" rows="3" cols="60"></textarea></legend>
-                                <input type="hidden" name = 'owner' value="{{ owner }}">
-                                    <input type="hidden" name = 'cat_name' value="{{ cat_name }}">
-                                        <input type="hidden" name = 'item_name' value="{{ item.name }}">
-                                            <input class="btn btn-primary" type="submit" value="Comment">
-                                                <input class="btn" type="reset" value="Reset">
-                                                    
-                                                    </form>
+                                <input type="hidden" name = 'id' value="{{ owner }}">
+                                <input type="hidden" name = 'category' value="{{ cat_name }}">
+                                <input type="hidden" name = 'name' value="{{ item.name }}">
+                                <input class="btn btn-primary" type="submit" value="Comment">
+                                <input class="btn" type="reset" value="Reset">
+                                    
+                            </form>
                         </div>
                     </div>
                     {% elif results or unvoted %}
@@ -410,7 +415,7 @@
                             <div class="tab-pane active" id="Cat">
                                 <table class="table table-hover" id="Categories">
                                     <thead>
-                                        <th></th><th>Name</th><th>Create Time</th><th>Expiration Time</th>
+                                        <th></th><th>Name</th><th>Owner</th><th>Create Time</th><th>Expiration Time</th>
                                     </thead>
                                     {% for cat in query_cat %}
                                     {% if cat.name %}
@@ -420,7 +425,7 @@
                                         {% else %}
                                         <a href="/?cat_name={{cat.name}}&owner={{cat.owner_id}}">View</a>
                                         {% endif %}
-                                    </td><td>{{ cat.name }}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
+                                    </td><td>{{ cat.name }}</td><td>{{cat.owner}}</td><td>{{ cat.create_time }}</td><td>{{ cat.expiration_time }}</td></tr>
                                     {% endif %}
                                     {% endfor %}
                                 </table>

@@ -32,17 +32,18 @@
 		AA389F0C16811A9C00F5BE56 /* prettify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = prettify.js; path = ../js/prettify.js; sourceTree = "<group>"; };
 		AA389F0E16811A9C00F5BE56 /* datepicker.less */ = {isa = PBXFileReference; lastKnownFileType = text; path = datepicker.less; sourceTree = "<group>"; };
 		AA389F0F16811A9C00F5BE56 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; name = README; path = ../README; sourceTree = "<group>"; };
-		AA389F1116811A9C00F5BE56 /* category_view.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = category_view.html; sourceTree = "<group>"; };
 		AA389F1316811A9C00F5BE56 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
 		AA389F1716811A9C00F5BE56 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA389F1816811A9C00F5BE56 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
 		AA389F1916811BD500F5BE56 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		AA389F1A168151A900F5BE56 /* test.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = test.py; path = ../test.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		AA389EE816811A8600F5BE56 = {
 			isa = PBXGroup;
 			children = (
+				AA389F1A168151A900F5BE56 /* test.py */,
 				AA389EF116811A9B00F5BE56 /* app.yaml */,
 				AA389EF216811A9B00F5BE56 /* css */,
 				AA389EF916811A9B00F5BE56 /* favicon.ico */,
@@ -124,7 +125,6 @@
 			isa = PBXGroup;
 			children = (
 				AA389F1916811BD500F5BE56 /* index.html */,
-				AA389F1116811A9C00F5BE56 /* category_view.html */,
 			);
 			name = view;
 			path = ../view;
