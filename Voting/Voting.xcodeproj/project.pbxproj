@@ -16,7 +16,6 @@
 		AA389EF816811A9B00F5BE56 /* docs.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = docs.css; sourceTree = "<group>"; };
 		AA389EF916811A9B00F5BE56 /* favicon.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; name = favicon.ico; path = ../favicon.ico; sourceTree = "<group>"; };
 		AA389EFB16811A9B00F5BE56 /* cat.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = cat.xml; sourceTree = "<group>"; };
-		AA389EFC16811A9B00F5BE56 /* cat.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = cat.xml; path = ../file/cat.xml; sourceTree = "<group>"; };
 		AA389EFE16811A9B00F5BE56 /* bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bg.png; sourceTree = "<group>"; };
 		AA389EFF16811A9B00F5BE56 /* glyphicons-halflings-white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings-white.png"; sourceTree = "<group>"; };
 		AA389F0016811A9B00F5BE56 /* glyphicons-halflings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "glyphicons-halflings.png"; sourceTree = "<group>"; };
@@ -26,41 +25,32 @@
 		AA389F0616811A9C00F5BE56 /* bootstrap.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.js; sourceTree = "<group>"; };
 		AA389F0716811A9C00F5BE56 /* bootstrap.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = bootstrap.min.js; sourceTree = "<group>"; };
 		AA389F0816811A9C00F5BE56 /* prettify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = prettify.js; sourceTree = "<group>"; };
-		AA389F0916811A9C00F5BE56 /* bootstrap-datepicker.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "bootstrap-datepicker.js"; path = "../js/bootstrap-datepicker.js"; sourceTree = "<group>"; };
-		AA389F0A16811A9C00F5BE56 /* bootstrap.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = bootstrap.js; path = ../js/bootstrap.js; sourceTree = "<group>"; };
-		AA389F0B16811A9C00F5BE56 /* bootstrap.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = bootstrap.min.js; path = ../js/bootstrap.min.js; sourceTree = "<group>"; };
-		AA389F0C16811A9C00F5BE56 /* prettify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = prettify.js; path = ../js/prettify.js; sourceTree = "<group>"; };
 		AA389F0E16811A9C00F5BE56 /* datepicker.less */ = {isa = PBXFileReference; lastKnownFileType = text; path = datepicker.less; sourceTree = "<group>"; };
 		AA389F0F16811A9C00F5BE56 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; name = README; path = ../README; sourceTree = "<group>"; };
 		AA389F1316811A9C00F5BE56 /* Voting.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Voting.xcodeproj; sourceTree = "<group>"; };
 		AA389F1716811A9C00F5BE56 /* voting.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = voting.py; path = ../voting.py; sourceTree = "<group>"; };
 		AA389F1816811A9C00F5BE56 /* voting.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; name = voting.pyc; path = ../voting.pyc; sourceTree = "<group>"; };
 		AA389F1916811BD500F5BE56 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
-		AA389F1A168151A900F5BE56 /* test.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = test.py; path = ../test.py; sourceTree = "<group>"; };
+		AA389F1A168151A900F5BE56 /* model.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = model.py; path = ../model.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		AA389EE816811A8600F5BE56 = {
 			isa = PBXGroup;
 			children = (
-				AA389F1A168151A900F5BE56 /* test.py */,
 				AA389EF116811A9B00F5BE56 /* app.yaml */,
 				AA389EF216811A9B00F5BE56 /* css */,
 				AA389EF916811A9B00F5BE56 /* favicon.ico */,
 				AA389EFA16811A9B00F5BE56 /* file */,
-				AA389EFC16811A9B00F5BE56 /* cat.xml */,
 				AA389EFD16811A9B00F5BE56 /* img */,
 				AA389F0316811A9C00F5BE56 /* index.yaml */,
 				AA389F0416811A9C00F5BE56 /* js */,
-				AA389F0916811A9C00F5BE56 /* bootstrap-datepicker.js */,
-				AA389F0A16811A9C00F5BE56 /* bootstrap.js */,
-				AA389F0B16811A9C00F5BE56 /* bootstrap.min.js */,
-				AA389F0C16811A9C00F5BE56 /* prettify.js */,
 				AA389F0D16811A9C00F5BE56 /* less */,
 				AA389F0F16811A9C00F5BE56 /* README */,
 				AA389F1016811A9C00F5BE56 /* view */,
 				AA389F1216811A9C00F5BE56 /* Voting */,
 				AA389F1716811A9C00F5BE56 /* voting.py */,
+				AA389F1A168151A900F5BE56 /* model.py */,
 				AA389F1816811A9C00F5BE56 /* voting.pyc */,
 			);
 			sourceTree = "<group>";
