@@ -724,6 +724,34 @@ class Skip(webapp2.RequestHandler):
         template = jinja_environment.get_template('view/index.html')
         self.response.out.write(template.render(template_values))
 
+class StatCat(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+            username = user.nickname()
+            user_id = user.user_id()
+            template_values['username'] = username
+            template_values['user_id'] = user_id
+        
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+            username = ''
+                
+        owner_id = self.request.get('id')
+        stats_cat = self.request.get('name')
+        #cat_id = cat_key(owner_id, stats_cat)
+        
+        results, unvoted = listResult(owner_id, stats_cat, user_id)
+        results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
+        template_values['results'] = results_sorted
+        template_values['unvoted'] = unvoted
+
+        template = jinja_environment.get_template('view/index.html')
+        self.response.out.write(template.render(template_values))
 
 class Dispatcher(webapp2.RequestHandler):
     def get(self):
@@ -745,18 +773,7 @@ class Dispatcher(webapp2.RequestHandler):
                 memcache.get('username')
                 memcache.get('user_id')
         
-            if self.request.arguments():                                             
-                if self.request.get('stats_cat'):
-                    owner_id = self.request.get('owner')
-                    stats_cat = self.request.get('stats_cat')
-                    #cat_id = cat_key(owner_id, stats_cat)
-                    
-                    results, unvoted = listResult(owner_id, stats_cat, user_id)
-                    results_sorted = sorted(results.items(), key=lambda x: x[1][2], reverse=True)
-                    template_values['results'] = results_sorted
-                    template_values['unvoted'] = unvoted              
-
-            else:
+            if not self.request.arguments():
                 template_values['home'] = True
         
         else:
@@ -775,4 +792,4 @@ config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': 'my-super-secret-key',
 }
-app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory), ('/item', ViewItem), ('/next_vote', NextVote), ('/skip', Skip)], debug=True, config=config)
+app = webapp2.WSGIApplication([('/', Dispatcher), ('/addCat', AddCat), ('/addItem', AddItem), ('/vote', VoteItem), ('/import', ImportCat), ('/export', ExportHandler), ('/export/([^/]+)?', ExportCat), ('/addComment', AddComment), ('/removeItem', RemoveItem), ('/img', Image), ('/search', Search), ('/category', ViewCategory), ('/item', ViewItem), ('/next_vote', NextVote), ('/skip', Skip), ('/stat_cat', StatCat)], debug=True, config=config)
