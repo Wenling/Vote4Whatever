@@ -22,6 +22,7 @@ import jinja2
 import xml.dom.minidom
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment
+import model
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
